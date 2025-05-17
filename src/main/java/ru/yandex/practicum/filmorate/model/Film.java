@@ -15,12 +15,9 @@ import java.time.LocalDate;
 @Builder
 public class Film {
 
-    private final static Logger log = LoggerFactory.getLogger(Film.class);
-
     private Long id;
     private String name;
     private String description;
     private LocalDate releaseDate;
     private Long duration;
-
 }
