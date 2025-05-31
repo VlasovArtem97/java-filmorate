@@ -9,6 +9,8 @@ import ru.yandex.practicum.filmorate.annotation.ReleaseDateConstraint;
 import ru.yandex.practicum.filmorate.interfaces.Marker;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -19,12 +21,18 @@ public class Film {
     @Null(groups = Marker.OnCreate.class)
     @NotNull(groups = Marker.OnUpdate.class)
     private Long id;
+
     @NotBlank(message = "Название не может быть пустым")
     private String name;
+
     @Size(max = 200, message = "Максимальная длина описания — 200 символов")
     private String description;
+
     @ReleaseDateConstraint
     private LocalDate releaseDate;
+
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     private Long duration;
+
+    private final Set<Long> likes = new HashSet<>();
 }
