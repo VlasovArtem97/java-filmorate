@@ -1,8 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.interfaces.Marker;
@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
 
-@Slf4j
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -21,22 +20,23 @@ public class FilmController {
     private final FilmService filmService;
 
     @PutMapping("/{id}/like/{userId}")
-    public void addingLike(@PathVariable("id") Long filmId, @PathVariable Long userId) {
+    public void addingLike(@Positive @PathVariable("id") Long filmId, @Positive @PathVariable Long userId) {
         filmService.addingLikes(filmId, userId);
     }
 
     @GetMapping("/{id}")
-    public Film gettingAMovieById(@PathVariable("id") Long filmId) {
+    public Film gettingAMovieById(@Positive @PathVariable("id") Long filmId) {
         return filmService.gettingAMovieById(filmId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void removingALike(@PathVariable("id") Long filmId, @PathVariable Long userId) {
+    public void removingALike(@Positive @PathVariable("id") Long filmId, @Positive @PathVariable Long userId) {
         filmService.removingALike(filmId, userId);
     }
 
     @GetMapping("/popular")
-    public Collection<Film> listOfPopularMovies(@RequestParam(required = false, defaultValue = "10") int count) {
+    public Collection<Film> listOfPopularMovies(@Positive @RequestParam(required = false, defaultValue = "10")
+                                                int count) {
         return filmService.listOfPopularMovies(count);
     }
 
