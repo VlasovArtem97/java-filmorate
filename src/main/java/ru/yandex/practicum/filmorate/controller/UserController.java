@@ -1,70 +1,64 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.interfaces.Marker;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.*;
+import java.util.Collection;
 
-@Slf4j
-@RestController
 @Validated
+@RestController
+@RequiredArgsConstructor
 @RequestMapping("/users")
 public class UserController {
 
-    private final Map<Long, User> userMap = new HashMap<>();
+    private final UserService userService;
+
+    @GetMapping("/{id}")
+    public User gettingAUserById(@Positive @PathVariable("id") Long userId) {
+        return userService.gettingAUserById(userId);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addingAFriend(@Positive @PathVariable("id") Long userId, @Positive @PathVariable Long friendId) {
+        userService.addingAFriend(userId, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void unfriendingById(@Positive @PathVariable("id") Long userId, @Positive @PathVariable Long friendId) {
+        userService.unfriending(userId, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public Collection<User> friendList(@Positive @PathVariable("id") Long userId) {
+        return userService.friendsList(userId);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Collection<User> mutualFriendsList(@Positive @PathVariable("id") Long userId,
+                                              @Positive @PathVariable Long otherId) {
+        return userService.mutualFriendsList(userId, otherId);
+    }
 
     @PostMapping
     @Validated(Marker.OnCreate.class)
     public User addUser(@Valid @RequestBody User user) {
-        log.info("Получен запрос на добавление пользователя - {}", user);
-        validateUserName(user);
-        user.setId(getNextId());
-        userMap.put(user.getId(), user);
-        log.info("Пользователь - {} успешно добавлен", user);
-        return user;
+        return userService.addUser(user);
     }
 
     @PutMapping
     @Validated(Marker.OnUpdate.class)
     public User updateUser(@Valid @RequestBody User user) {
-        log.info("Получен запрос на обновление данных пользователя - {}", user);
-        Optional<User> user1 = Optional.ofNullable(userMap.get(user.getId()));
-        if (user1.isPresent()) {
-            validateUserName(user);
-            userMap.put(user.getId(), user);
-            log.info("Данные пользователя - {} успешно обновлены", user);
-            return user;
-        } else {
-            log.error("Пользователь с указанным id - {} не найден", user.getId());
-            throw new ValidationException("Пользователь с указанным id не найден");
-        }
+        return userService.updateUser(user);
     }
 
     @GetMapping
     public Collection<User> gettingUser() {
-        log.info("Получен запрос на получения списка всех пользователей");
-        return new ArrayList<>(userMap.values());
-    }
-
-    private long getNextId() {
-        long currentMaxId = userMap.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
-    }
-
-    public void validateUserName(User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            log.info("Имя пользователя - {} пустое, используем его логин - {}, " +
-                    "как имя", user, user.getLogin());
-            user.setName(user.getLogin());
-        }
+        return userService.gettingUser();
     }
 }
