@@ -3,8 +3,7 @@ ___
 ## Что же такое Filmorate  
 **Filmorate** — это Java-приложение для управления пользователями 
 и фильмами с возможностью взаимодействия между ними. Проект предоставляет функционал для работы с пользователями 
-и фильмами, включая управление друзьями и рейтингом фильмов.
-Template repository for Filmorate project.  
+и фильмами, включая управление друзьями и рейтингом фильмов. 
 ___
 ## Основные возможности
 
@@ -78,10 +77,10 @@ FROM films;
 ```
 - ### Получить 10 популярных фильмов (в соответствии с количеством лайков)
 ```
-SELECT f.film_id, f.title, COUNT(fl.user_id) AS likes_count
+SELECT f.film_id, f.name, COUNT(fl.user_id) AS likes_count
 FROM films AS f
 LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
-GROUP BY f.film_id, f.title
+GROUP BY f.film_id, f.name
 ORDER BY likes_count DESC
 LIMIT 10;
 ```
