@@ -29,5 +29,4 @@ public class GenreService {
     public void removeFromGenresFilms(Long filmId, Set<Genre> longSet) {
         genreDbStorage.removeFromGenresFilms(filmId, longSet);
     }
-
 }
