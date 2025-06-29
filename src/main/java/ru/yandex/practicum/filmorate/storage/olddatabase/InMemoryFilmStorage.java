@@ -1,12 +1,14 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.olddatabase;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.interfacedatabase.FilmStorage;
 
 import java.util.*;
 
+@Deprecated
 @Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
@@ -48,6 +50,21 @@ public class InMemoryFilmStorage implements FilmStorage {
             log.error("Фильм с указанным id - {} не найден", filmId);
             throw new NotFoundException("Фильм с ID - " + film + " не найден");
         }
+    }
+
+    @Override
+    public void addingLikes(Long filmId, Long userId) {
+
+    }
+
+    @Override
+    public void removingALike(Long filmId, Long userId) {
+
+    }
+
+    @Override
+    public Collection<Film> listOfPopularMovies(int count) {
+        return List.of();
     }
 
     private long getNextId() {

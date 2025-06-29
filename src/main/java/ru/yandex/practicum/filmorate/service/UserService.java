@@ -4,12 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.interfacedatabase.UserStorage;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -21,36 +18,23 @@ public class UserService {
     public void addingAFriend(Long userId, Long userFriendId) {
         log.info("Получен запрос на добавление в список друзей от пользователя c id - {} с " +
                 "пользователем c id - {}", userId, userFriendId);
-        User user1 = userStorage.findUserById(userId);
-        User friend = userStorage.findUserById(userFriendId);
-
-        user1.getFriends().add(userFriendId);
-        friend.getFriends().add(userId);
-        log.info("Пользователь c id - {} и пользователь c id - {} добавлены друг другу в список друзей", userId, userFriendId);
+        gettingAUserById(userId);
+        gettingAUserById(userFriendId);
+        userStorage.addingAFriend(userId, userFriendId);
     }
 
     public void unfriending(Long userId, Long userFriendId) {
-        log.info("Получен запрос на удаление из списка друзей от пользователя c id - {} с " +
-                "пользователем c id - {}", userId, userFriendId);
-        User user1 = userStorage.findUserById(userId);
-        User friend = userStorage.findUserById(userFriendId);
-
-        user1.getFriends().remove(userFriendId);
-        friend.getFriends().remove(userId);
-        log.info("Пользователь c id - {} и пользователь c id - {} удалены у друг друга из списка" +
-                " друзей", userId, userFriendId);
+        log.info("Получен запрос от пользователя c id - {} на удаление из списка друзей пользователя c id - {}",
+                userId, userFriendId);
+        gettingAUserById(userId);
+        gettingAUserById(userFriendId);
+        userStorage.unfriending(userId, userFriendId);
     }
 
     public Collection<User> friendsList(Long userId) {
         log.info("Получен запрос на получения списка друзей пользователя с id - {}", userId);
-        User user1 = userStorage.findUserById(userId);
-
-        Set<Long> friendsId = user1.getFriends();
-        Collection<User> usersList = userStorage.gettingUser();
-
-        return usersList.stream()
-                .filter(user -> friendsId.contains(user.getId()))
-                .collect(Collectors.toList());
+        gettingAUserById(userId);
+        return userStorage.friendsList(userId);
     }
 
     public User gettingAUserById(Long userId) {
@@ -60,30 +44,24 @@ public class UserService {
     public Collection<User> mutualFriendsList(Long userId, Long otherId) {
         log.info("Получен запрос на получение списка общих друзей пользователя с id - {}" +
                 " и пользователя с id - {}", userId, otherId);
-        User user1 = userStorage.findUserById(userId);
-        User user2 = userStorage.findUserById(otherId);
-
-        Set<Long> users1 = user1.getFriends();
-        Set<Long> users2 = user2.getFriends();
-
-        Set<Long> commonFriends = new HashSet<>(users1);
-        commonFriends.retainAll(users2);
-
-        return userStorage.gettingUser().stream()
-                .filter(user -> commonFriends.contains(user.getId()))
-                .toList();
+        gettingAUserById(userId);
+        gettingAUserById(otherId);
+        return userStorage.mutualFriendsList(userId, otherId);
     }
 
-
     public User addUser(User user) {
+        log.info("Получен запрос на добавление пользователя - {}", user);
         return userStorage.addUser(user);
     }
 
     public User updateUser(User user) {
+        log.info("Получен запрос на обновление данных пользователя - {}", user);
+        gettingAUserById(user.getId());
         return userStorage.updateUser(user);
     }
 
     public Collection<User> gettingUser() {
+        log.info("Получен запрос на получения списка пользователей");
         return userStorage.gettingUser();
     }
 }

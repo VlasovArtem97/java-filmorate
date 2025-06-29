@@ -32,7 +32,6 @@ public class HandlerException {
         return Map.of("Ошибка в поиске ", e.getMessage());
     }
 
-
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handlerMethodArgumentNotValid(final MethodArgumentNotValidException e) {
@@ -61,6 +60,13 @@ public class HandlerException {
     public Map<String, String> handleException(final Exception e) {
         log.info("Ошибка сервера - {}", e.getMessage());
         return Map.of("Ошибка сервера", e.getMessage());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleIllegalState(final IllegalStateException e) {
+        log.error("Обнаружена IllegalStateException - {}", e.getMessage());
+        return Map.of("Ошибка состояния", e.getMessage());
     }
 
 }

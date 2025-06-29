@@ -1,12 +1,14 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.olddatabase;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.interfacedatabase.UserStorage;
 
 import java.util.*;
 
+@Deprecated
 @Slf4j
 @Component
 public class InMemoryUserStorage implements UserStorage {
@@ -70,4 +72,26 @@ public class InMemoryUserStorage implements UserStorage {
             throw new NotFoundException("Пользователь с ID - " + userId + " не найден");
         }
     }
+
+    @Override
+    public void addingAFriend(Long userId, Long userFriendId) {
+
+    }
+
+    @Override
+    public void unfriending(Long userId, Long userFriendId) {
+
+    }
+
+    @Override
+    public Collection<User> friendsList(Long userId) {
+        return List.of();
+    }
+
+    @Override
+    public Collection<User> mutualFriendsList(Long userId, Long otherId) {
+        return List.of();
+    }
+
+
 }

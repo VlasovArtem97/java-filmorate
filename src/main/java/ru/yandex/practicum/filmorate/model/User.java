@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.interfaces.Marker;
@@ -14,7 +13,6 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class User {
 
     @Null(groups = Marker.OnCreate.class)
@@ -35,4 +33,5 @@ public class User {
     private LocalDate birthday;
 
     private final Set<Long> friends = new HashSet<>();
+
 }
