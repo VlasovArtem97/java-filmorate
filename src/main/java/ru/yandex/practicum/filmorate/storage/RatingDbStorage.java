@@ -43,5 +43,4 @@ public class RatingDbStorage implements RatingStorage {
             throw new NotFoundException("Рейтинг с ID - " + id + " не найден " + e.getMessage());
         }
     }
-
 }
