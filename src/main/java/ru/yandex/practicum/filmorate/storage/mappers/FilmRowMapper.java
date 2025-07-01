@@ -5,12 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.interfacedatabase.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.interfacedatabase.RatingStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.LinkedHashSet;
 
 @Slf4j
 @Component
