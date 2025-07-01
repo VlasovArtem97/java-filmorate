@@ -16,8 +16,6 @@ import java.util.LinkedHashSet;
 @Component
 @RequiredArgsConstructor
 public class FilmRowMapper implements RowMapper<Film> {
-    private final GenreStorage genreStorage;
-    private final RatingStorage ratingStorage;
 
     @Override
     public Film mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -27,8 +25,7 @@ public class FilmRowMapper implements RowMapper<Film> {
         film.setDescription(rs.getString("description"));
         film.setDuration(rs.getLong("duration"));
         film.setReleaseDate(rs.getDate("release_date").toLocalDate());
-        film.setMpa(ratingStorage.getRatingById(rs.getLong("rating_id")));
-        film.setGenres(new LinkedHashSet<>(genreStorage.getAListOfGenres(film.getId())));
+        film.setMpaId(rs.getLong("rating_id"));
         return film;
     }
 }

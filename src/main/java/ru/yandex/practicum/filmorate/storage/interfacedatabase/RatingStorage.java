@@ -9,4 +9,5 @@ public interface RatingStorage {
     Collection<RatingMpa> getAllRatings();
 
     RatingMpa getRatingById(Long id);
+
 }

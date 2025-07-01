@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.interfacedatabase.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.mappers.FilmRowMapper;
 
 import java.sql.Date;
@@ -26,8 +25,6 @@ import java.util.List;
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmRowMapper filmRowMapper;
-    private final RatingDbStorage ratingDbStorage;
-    private final GenreStorage genreStorage;
 
     @Override
     public Film findFilmById(Long filmId) {
@@ -60,7 +57,6 @@ public class FilmDbStorage implements FilmStorage {
             log.error("Не удалось обновить данные фильма - {}", film);
             throw new IllegalStateException("Не удалось обновить данные фильма");
         }
-        log.info("Фильм - {} успешно обновлен", film);
         return findFilmById(film.getId());
     }
 

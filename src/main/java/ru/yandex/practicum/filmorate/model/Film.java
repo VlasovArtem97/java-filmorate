@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import ru.yandex.practicum.filmorate.annotation.ReleaseDateConstraint;
 import ru.yandex.practicum.filmorate.interfaces.Marker;
 
@@ -35,5 +37,9 @@ public class Film {
     private Set<Genre> genres = new LinkedHashSet<>();
 
     private RatingMpa mpa;
+
+    @ToString.Exclude
+    @JsonIgnore
+    private Long mpaId;
 
 }
