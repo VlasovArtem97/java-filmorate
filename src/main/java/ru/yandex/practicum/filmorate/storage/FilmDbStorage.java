@@ -89,7 +89,7 @@ public class FilmDbStorage implements FilmStorage {
         return film;
     }
 
-    @Override
+    /*@Override
     public Collection<Film> listOfPopularMovies(int count) {
         String query = "SELECT f.* FROM films AS f " +
                 "JOIN (SELECT film_id " +
@@ -106,6 +106,22 @@ public class FilmDbStorage implements FilmStorage {
             throw new IllegalStateException("Не удалось получить список из + " + count +
                     "популярных фильмов" + e.getMessage());
         }
+    }*/
+    @Override
+    public Collection<Film> listOfPopularMovies(int count) {
+        String sql = """
+        SELECT f.film_id, f.name, f.description, f.release_date,
+               f.duration, f.rating_id
+        FROM films AS f
+        LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
+        GROUP BY f.film_id, f.name, f.description,
+                 f.release_date, f.duration, f.rating_id
+        ORDER BY COUNT(fl.user_id) DESC
+        LIMIT ?
+        """;
+        List<Film> films = jdbcTemplate.query(sql, filmRowMapper, count);
+        log.info("Список из {} популярных (включая без лайков) фильмов получен: {}", count, films);
+        return films;
     }
 
     @Override
