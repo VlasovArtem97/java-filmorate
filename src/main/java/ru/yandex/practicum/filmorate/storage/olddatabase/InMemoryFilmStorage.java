@@ -75,4 +75,9 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .orElse(0);
         return ++currentMaxId;
     }
+
+    @Override
+    public Collection<Film> getRecommendedMovies(Long userId) {
+        return List.of();
+    }
 }

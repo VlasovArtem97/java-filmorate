@@ -94,4 +94,11 @@ public class FilmService {
         log.info("Список популярных фильмов - {}", films);
         return films;
     }
+
+    public Collection<Film> getRecommendations(Long userId) {
+        log.info("Получен запрос на получение списка рекомендаций для пользователя с id - {}", userId);
+        userService.gettingAUserById(userId);
+        return filmStorage.getRecommendedMovies(userId);
+    }
+
 }

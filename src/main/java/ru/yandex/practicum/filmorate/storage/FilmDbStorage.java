@@ -132,4 +132,54 @@ public class FilmDbStorage implements FilmStorage {
                     filmId + "пользователем с id - " + userId + " " + e.getMessage());
         }
     }
+
+    @Override
+    public Collection<Film> getRecommendedMovies(Long userId) {
+
+        /*
+         Принцип работы алгоритма:
+
+         1. Находим максимально похожего пользователя
+         1.1 Находим фильмы, которые лайкнул пользователь userId
+         1.2 Для каждого пользователя (кроме userId) рассчитываем число поставленных лайков этих фильмов;
+         1.3 Сортируем по уменьшению этого числа;
+         1.4 Получаем id первого пользователя из полученного списка
+
+         2. Формируем список рекомендуемых фильмов
+         2.1 Получаем перечень id фильмов, которые лайкнул пользователь id, но не лайкнул пользователь userId
+         2.2 Получаем данные этих фильмов
+        */
+
+        final String query1 = """
+            SELECT uc.uid FROM (
+                SELECT u.user_id AS uid, count(fl.*) AS cnt
+                FROM users u INNER JOIN film_likes fl ON u.user_id = fl.USER_ID
+                WHERE u.user_id != ? AND (fl.film_id IN (SELECT film_id FROM film_likes WHERE user_id = ?))
+                GROUP BY u.user_id
+                ORDER BY cnt desc
+                LIMIT 1) as uc;
+            """;
+        // Здесь для анализа по типу Slope One можно (путем настройки LIMIT) отрегулировать
+        // число близких пользователей и применить более серьезную методику
+        var sameUserIdList = jdbcTemplate.queryForList(query1, Long.class, userId, userId);
+        if (sameUserIdList.isEmpty()) {
+            log.info("Для пользователя {} получен пустой список рекомендованных фильмов", userId);
+            return List.of();
+        }
+
+        String query2 = """
+            SELECT * FROM films WHERE film_id IN (
+                SELECT f.film_id
+                FROM films f INNER JOIN film_likes fl ON f.film_id = fl.film_id
+                WHERE fl.user_id = ?
+                EXCEPT
+                SELECT f.film_id
+                FROM films f INNER JOIN film_likes fl ON f.film_id = fl.film_id
+                WHERE fl.user_id = ?);
+            """;
+        long sameUserId = sameUserIdList.getFirst();
+        List<Film> films = jdbcTemplate.query(query2, filmRowMapper, sameUserId, userId);
+        log.info("Для пользователя {} получен список из {} рекомендованных фильмов", userId, films.size());
+        return films;
+    }
 }
