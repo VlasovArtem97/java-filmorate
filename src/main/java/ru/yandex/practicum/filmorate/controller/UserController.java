@@ -61,4 +61,9 @@ public class UserController {
     public Collection<User> gettingUser() {
         return userService.gettingUser();
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@Positive @PathVariable("id") Long userId) {
+        userService.deleteUser(userId);
+    }
 }

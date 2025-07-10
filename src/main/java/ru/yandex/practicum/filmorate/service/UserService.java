@@ -64,4 +64,12 @@ public class UserService {
         log.info("Получен запрос на получения списка пользователей");
         return userStorage.gettingUser();
     }
+
+    public void deleteUser(Long userId) {
+        log.info("Запрос на удаление пользователя с id={}", userId);
+        // предварительно очистить все зависимости
+        userStorage.removeAllFriendships(userId);
+        userStorage.removeAllLikesByUser(userId);
+        userStorage.deleteUser(userId);
+    }
 }

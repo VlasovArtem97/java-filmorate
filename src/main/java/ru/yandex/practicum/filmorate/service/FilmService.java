@@ -94,4 +94,11 @@ public class FilmService {
         log.info("Список популярных фильмов - {}", films);
         return films;
     }
+
+    public void deleteFilm(Long filmId) {
+        log.info("Запрос на удаление фильма с id={}", filmId);
+        filmStorage.removeAllFilmLikes(filmId);
+        filmStorage.removeAllFilmGenres(filmId);
+        filmStorage.deleteFilm(filmId);
+    }
 }

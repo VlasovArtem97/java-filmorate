@@ -93,5 +93,37 @@ public class InMemoryUserStorage implements UserStorage {
         return List.of();
     }
 
+    @Override
+    public void removeAllFriendships(Long userId) {
+        // 1) Убираем всех друзей у самого пользователя
+        User user = userMap.get(userId);
+        if (user != null) {
+            user.getFriends().clear();
+        }
+        // 2) Убираем userId из списка друзей всех остальных пользователей
+        for (User other : userMap.values()) {
+            other.getFriends().remove(userId);
+        }
+    }
+
+    @Override
+    public void removeAllLikesByUser(Long userId) {
+        // В InMemoryUserStorage лайки не хранятся — оставляем пустым,
+        // их хранит InMemoryFilmStorage
+    }
+
+    @Override
+    public void deleteUser(Long userId) {
+        // Сначала удаляем все «дружбы»
+        removeAllFriendships(userId);
+        // (если нужно — удалить и лайки, но здесь метод пустой)
+        removeAllLikesByUser(userId);
+
+        // Наконец удаляем самого пользователя
+        User removed = userMap.remove(userId);
+        if (removed == null) {
+            throw new NotFoundException("Пользователь с ID=" + userId + " не найден");
+        }
+    }
 
 }
