@@ -132,4 +132,22 @@ public class FilmDbStorage implements FilmStorage {
                     filmId + "пользователем с id - " + userId + " " + e.getMessage());
         }
     }
+
+    @Override
+    public void removeAllFilmLikes(Long filmId) {
+        jdbcTemplate.update("DELETE FROM film_likes WHERE film_id = ?", filmId);
+    }
+
+    @Override
+    public void removeAllFilmGenres(Long filmId) {
+        jdbcTemplate.update("DELETE FROM genres_films WHERE film_id = ?", filmId);
+    }
+
+    @Override
+    public void deleteFilm(Long filmId) {
+        int count = jdbcTemplate.update("DELETE FROM films WHERE film_id = ?", filmId);
+        if (count == 0) {
+            throw new NotFoundException("Фильм с ID=" + filmId + " не найден");
+        }
+    }
 }

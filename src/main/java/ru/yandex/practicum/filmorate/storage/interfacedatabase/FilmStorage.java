@@ -19,4 +19,10 @@ public interface FilmStorage {
     void removingALike(Long filmId, Long userId);
 
     Collection<Film> listOfPopularMovies(int count);
+
+    void removeAllFilmLikes(Long filmId);
+
+    void removeAllFilmGenres(Long filmId);
+
+    void deleteFilm(Long filmId);
 }

@@ -159,4 +159,24 @@ public class UserDbStorage implements UserStorage {
         }
         log.info("Валидация имени пользователя - {} успешно пройдена", user);
     }
+
+    @Override
+    public void removeAllFriendships(Long userId) {
+        String sql = "DELETE FROM friendship WHERE user_id = ? OR friend_id = ?";
+        jdbcTemplate.update(sql, userId, userId);
+    }
+
+    @Override
+    public void removeAllLikesByUser(Long userId) {
+        String sql = "DELETE FROM film_likes WHERE user_id = ?";
+        jdbcTemplate.update(sql, userId);
+    }
+
+    @Override
+    public void deleteUser(Long userId) {
+        int count = jdbcTemplate.update("DELETE FROM users WHERE user_id = ?", userId);
+        if (count == 0) {
+            throw new NotFoundException("Пользователь с ID=" + userId + " не найден");
+        }
+    }
 }

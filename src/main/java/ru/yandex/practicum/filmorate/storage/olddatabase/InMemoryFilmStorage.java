@@ -75,4 +75,23 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .orElse(0);
         return ++currentMaxId;
     }
+
+    @Override
+    public void removeAllFilmLikes(Long filmId) {
+        // InMemory-хранилище не хранит отдельную мапу лайков — ничего не делаем
+    }
+
+    @Override
+    public void removeAllFilmGenres(Long filmId) {
+        // У нас жанры живут внутри объекта Film (film.getGenres()), чистить не нужно
+    }
+
+    @Override
+    public void deleteFilm(Long filmId) {
+        Film removed = filmMap.remove(filmId);
+        if (removed == null) {
+            throw new NotFoundException("Фильм с ID=" + filmId + " не найден");
+        }
+    }
+
 }

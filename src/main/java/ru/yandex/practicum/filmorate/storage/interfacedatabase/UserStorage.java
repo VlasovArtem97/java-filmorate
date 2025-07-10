@@ -21,4 +21,10 @@ public interface UserStorage {
     Collection<User> friendsList(Long userId);
 
     Collection<User> mutualFriendsList(Long userId, Long otherId);
+
+    void removeAllFriendships(Long userId);
+
+    void removeAllLikesByUser(Long userId);
+
+    void deleteUser(Long userId);
 }
