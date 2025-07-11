@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -130,6 +131,29 @@ public class FilmDbStorage implements FilmStorage {
             log.error("Не удалось поставить лайк фильму с id - {} пользователем с id - {}", filmId, userId);
             throw new IllegalStateException("Не удалось поставить лайк фильму с id " +
                     filmId + "пользователем с id - " + userId + " " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Collection<Film> listOfCommonFilms(long userId, long friendId) {
+        String query = """
+            SELECT f.* FROM films AS f JOIN (
+                SELECT film_id FROM film_likes GROUP BY film_id ORDER BY COUNT(*) DESC
+            ) AS pf ON f.film_id = pf.film_id
+            WHERE f.film_id IN (
+                SELECT film_id from FILM_LIKES WHERE USER_ID = ?
+                INTERSECT
+                SELECT FILM_ID from FILM_LIKES WHERE USER_ID = ?
+            );
+            """;
+        try {
+            List<Film> films = jdbcTemplate.query(query, filmRowMapper, userId, friendId);
+            log.info("Получен список из общих фильмов длиной {}", films.size());
+            return films;
+        } catch (DataAccessException e) {
+            String msg = "Не удалось получить список общих фильмов";
+            log.error(msg);
+            throw new IllegalStateException(msg);
         }
     }
 }

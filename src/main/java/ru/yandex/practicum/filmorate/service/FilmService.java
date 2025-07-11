@@ -94,4 +94,17 @@ public class FilmService {
         log.info("Список популярных фильмов - {}", films);
         return films;
     }
+
+    public Collection<Film> getCommonFilms(long userId, long friendId) {
+        log.info("Получен запрос списка общих фильмов пользователей {} и {}", userId, friendId);
+        userService.gettingAUserById(userId);
+        userService.gettingAUserById(friendId);
+        Collection<Film> commonFilms = filmStorage.listOfCommonFilms(userId, friendId);
+        commonFilms.forEach(film -> {
+            film.setMpa(ratingService.getRatingById(film.getMpaId()));
+            film.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(film.getId())));
+        });
+        log.info("Возвращён список фильмов длиной {}", commonFilms.size());
+        return commonFilms;
+    }
 }
