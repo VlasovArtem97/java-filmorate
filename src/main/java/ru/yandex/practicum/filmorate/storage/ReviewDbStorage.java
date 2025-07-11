@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
@@ -15,6 +16,7 @@ import ru.yandex.practicum.filmorate.storage.mappers.ReviewMapper;
 import java.sql.PreparedStatement;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Repository
@@ -110,26 +112,29 @@ public class ReviewDbStorage implements ReviewStorage {
     @Override
     public Review addDislikeToReview(Long reviewId, Long userId) {
         String queryInsert = "INSERT INTO reviews_ratings_films_by_users (user_id, review_id, evaluation) VALUES (?, ?, ?)";
-        String querySelect = "SELECT evaluation FROM reviews_ratings_films_by_users WHERE user_id = ? AND review_id = ?";
         String queryUpdate = "UPDATE reviews_ratings_films_by_users SET evaluation = ? WHERE user_id = ? AND review_id = ?";
         try {
-            //Получаем оценку пользователя (Like/Dislike)
-            String evaluation = jdbcTemplate.queryForObject(querySelect, String.class, userId, reviewId);
-
-            if ("DISLIKE".equals(evaluation)) {
-                log.info("Пользователь с id {} уже ставил дизлайк отзыву с id - {}", userId, reviewId);
-                throw new IllegalStateException("Пользователь уже ставил дизлайк этому отзыву");
-            } else if ("LIKE".equals(evaluation)) {
-                jdbcTemplate.update(queryUpdate, "DISLIKE", userId, reviewId);
+            //Получаем оценку из базы данных reviews_ratings_films_by_users
+            Optional<String> evaluationTable = getUserEvaluation(userId, reviewId);
+            if (evaluationTable.isPresent()) {
+                String evaluation = evaluationTable.get();
+                if ("DISLIKE".equals(evaluation)) {
+                    log.info("Пользователь с id {} уже ставил дизлайк отзыву с id - {}", userId, reviewId);
+                    throw new IllegalStateException("Пользователь уже ставил дизлайк этому отзыву");
+                } else if ("LIKE".equals(evaluation)) {
+                    //изменяем значение с лайка на дизлайк
+                    jdbcTemplate.update(queryUpdate, "DISLIKE", userId, reviewId);
+                    //Уменьшаем значение поля useful в таблице reviews
+                    addRatingToUtilityRating(reviewId, -2L);
+                    log.info("Оценка изменена с лайка на дизлайк для отзыва c id {} пользователем c id {}", reviewId, userId);
+                }
+            } else {
+                // Если оценки нет добавляем DISLIKE в таблицу reviews_ratings_films_by_users
+                jdbcTemplate.update(queryInsert, userId, reviewId, "DISLIKE");
                 //Уменьшаем значение поля useful в таблице reviews
-                addRatingToUtilityRating(reviewId, -2L);
-                log.info("Оценка изменена с лайка на дизлайк для отзыва c id {} пользователем c id {}", reviewId, userId);
+                addRatingToUtilityRating(reviewId, -1L);
+                log.info("Дизлайк успешно поставлен отзыву с id - {} пользователем с id - {}", reviewId, userId);
             }
-        } catch (EmptyResultDataAccessException ignore) {
-            jdbcTemplate.update(queryInsert, userId, reviewId, "DISLIKE");
-            //Уменьшаем значение поля useful в таблице reviews
-            addRatingToUtilityRating(reviewId, -1L);
-            log.info("Дизлайк успешно поставлен отзыву с id - {} пользователем с id - {}", reviewId, userId);
         } catch (DataAccessException e) {
             log.error("Ошибка при установке дизлайка отзыву id {} пользователем id {}: {}", reviewId, userId, e.getMessage());
             throw new IllegalStateException("Не удалось поставить дизлайк отзыву с id " + reviewId + " пользователем с id " + userId, e);
@@ -140,33 +145,34 @@ public class ReviewDbStorage implements ReviewStorage {
     @Override
     public Review addLikeToReview(Long reviewId, Long userId) {
         String insertQuery = "INSERT INTO reviews_ratings_films_by_users (user_id, review_id, evaluation) VALUES (?, ?, ?)";
-        String selectQuery = "SELECT evaluation FROM reviews_ratings_films_by_users WHERE user_id = ? AND review_id = ?";
         String updateQuery = "UPDATE reviews_ratings_films_by_users SET evaluation = ? WHERE user_id = ? AND review_id = ?";
 
         try {
-            // Проверяем, есть ли уже оценка пользователя
-            String evaluation = jdbcTemplate.queryForObject(selectQuery, String.class, userId, reviewId);
-
-            if ("LIKE".equals(evaluation)) {
-                log.info("Пользователь с id {} уже ставил лайк отзыву с id - {}", userId, reviewId);
-                throw new IllegalStateException("Пользователь уже ставил лайк этому отзыву");
-            } else if ("DISLIKE".equals(evaluation)) {
-                // Обновляем дизлайк на лайк и корректируем полезность
-                jdbcTemplate.update(updateQuery, "LIKE", userId, reviewId);
-                //Увеличиваем значение поля useful в таблице reviews
-                addRatingToUtilityRating(reviewId, 2L);
-                log.info("Оценка изменена с дизлайка на лайк для отзыва c id {} пользователем c id {}", reviewId, userId);
+            //Получаем оценку в базе данных reviews_ratings_films_by_users
+            Optional<String> evaluationTable = getUserEvaluation(userId, reviewId);
+            if (evaluationTable.isPresent()) {
+                String evaluation = evaluationTable.get();
+                if ("LIKE".equals(evaluation)) {
+                    log.info("Пользователь с id {} уже ставил лайк отзыву с id - {}", userId, reviewId);
+                    throw new IllegalStateException("Пользователь уже ставил лайк этому отзыву");
+                } else if ("DISLIKE".equals(evaluation)) {
+                    // изменяем значение с дизлайка на лайк
+                    jdbcTemplate.update(updateQuery, "LIKE", userId, reviewId);
+                    //увеличиваем значение поле useful в таблице reviews
+                    addRatingToUtilityRating(reviewId, 2L);
+                    log.info("Оценка изменена с дизлайка на лайк для отзыва c id {} пользователем c id {}", reviewId, userId);
+                }
+            } else {
+                // Если оценки нет, вставляем лайк и увеличиваем поле useful на 1
+                jdbcTemplate.update(insertQuery, userId, reviewId, "LIKE");
+                addRatingToUtilityRating(reviewId, 1L);
+                log.info("Лайк успешно поставлен отзыву с id - {} пользователем с id - {}", reviewId, userId);
             }
-        } catch (EmptyResultDataAccessException e) {
-            // Если оценки нет, вставляем лайк и увеличиваем полезность на 1
-            jdbcTemplate.update(insertQuery, userId, reviewId, "LIKE");
-            //Увеличиваем значение поля useful в таблице reviews
-            addRatingToUtilityRating(reviewId, 1L);
-            log.info("Лайк успешно поставлен отзыву с id - {} пользователем с id - {}", reviewId, userId);
         } catch (DataAccessException e) {
             log.error("Ошибка при установке лайка отзыву id {} пользователем id {}: {}", reviewId, userId, e.getMessage());
             throw new IllegalStateException("Не удалось поставить лайк отзыву с id " + reviewId + " пользователем с id " + userId, e);
         }
+
         return findReviewById(reviewId);
     }
 
@@ -237,5 +243,16 @@ public class ReviewDbStorage implements ReviewStorage {
             throw new IllegalStateException("Не удалось обновить данные пользователя поле useful");
         }
         log.info("поле useful отзыва с id - {} успешно обновлены", reviewId);
+    }
+
+    //метод, который ищет оценку (Like, Dislike или ничего) в базе данных reviews_ratings_films_by_users
+    private Optional<String> getUserEvaluation(Long userId, Long reviewId) {
+        String querySelect = "SELECT evaluation FROM reviews_ratings_films_by_users WHERE user_id = ? AND review_id = ?";
+        try {
+            String evaluation = jdbcTemplate.queryForObject(querySelect, String.class, userId, reviewId);
+            return Optional.ofNullable(evaluation);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            return Optional.empty();
+        }
     }
 }
