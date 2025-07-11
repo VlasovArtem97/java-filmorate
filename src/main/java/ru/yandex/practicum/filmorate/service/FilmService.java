@@ -94,4 +94,9 @@ public class FilmService {
         log.info("Список популярных фильмов - {}", films);
         return films;
     }
+
+    public Collection<Film> getFilmsByDirectorId(Long id, String sortBy) {
+        log.info("Поступил GET-запрос на получение списка фильмов sortBy={}, directorId={}", sortBy, id);
+        return filmStorage.getFilmsByDirectorId(id, sortBy);
+    }
 }

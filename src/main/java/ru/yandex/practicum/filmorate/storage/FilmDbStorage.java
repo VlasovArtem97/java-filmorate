@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.mappers.FilmRowMapper;
@@ -131,5 +132,31 @@ public class FilmDbStorage implements FilmStorage {
             throw new IllegalStateException("Не удалось поставить лайк фильму с id " +
                     filmId + "пользователем с id - " + userId + " " + e.getMessage());
         }
+    }
+
+    @Override
+    public List<Film> getFilmsByDirectorId(Long id, String sortBy) {
+        try {
+            jdbcTemplate.queryForObject("SELECT * FROM directors WHERE id=?", (rs, rowNum) -> new Director(
+                    (long) rs.getInt("id"),
+                    rs.getString("name")
+            ), id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new NotFoundException("Режиссер не найден");
+        }
+        if (sortBy.equals("year")) {
+            sortBy = "release_date";
+        }
+        String sql = """
+                SELECT films.film_id, films.name, films.description, films.release_date, films.duration,
+                films.rating_id
+                FROM directors d
+                JOIN film_director fd ON d.id=fd.director_id
+                JOIN films ON fd.film_id=films.film_id
+                WHERE d.id=?
+                ORDER BY """ + sortBy;
+        List<Film> films = jdbcTemplate.query(sql, filmRowMapper, id);
+        log.info("Получен список фильмов режиссера");
+        return films;
     }
 }
