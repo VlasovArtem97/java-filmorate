@@ -14,6 +14,7 @@ import java.util.Collection;
 public class UserService {
 
     private final UserStorage userStorage;
+    private final EventService eventService;
 
     public void addingAFriend(Long userId, Long userFriendId) {
         log.info("Получен запрос на добавление в список друзей от пользователя c id - {} с " +
@@ -21,6 +22,7 @@ public class UserService {
         gettingAUserById(userId);
         gettingAUserById(userFriendId);
         userStorage.addingAFriend(userId, userFriendId);
+        eventService.addUserAddFriendEvent(userId, userFriendId);
     }
 
     public void unfriending(Long userId, Long userFriendId) {
@@ -29,6 +31,7 @@ public class UserService {
         gettingAUserById(userId);
         gettingAUserById(userFriendId);
         userStorage.unfriending(userId, userFriendId);
+        eventService.addUserRemoveFriendEvent(userId, userFriendId);
     }
 
     public Collection<User> friendsList(Long userId) {
