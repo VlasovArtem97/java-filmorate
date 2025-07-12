@@ -29,7 +29,7 @@ public class HandlerException {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleUserNotFound(final NotFoundException e) {
         log.error("Ошибка в поиске - {}", e.getMessage());
-        return Map.of("Ошибка в поиске ", e.getMessage());
+        return Map.of("Error", e.getMessage());
     }
 
     @ExceptionHandler
