@@ -8,8 +8,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.interfacedatabase.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.mappers.FilmRowMapper;
 
@@ -26,6 +26,7 @@ import java.util.List;
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmRowMapper filmRowMapper;
+    private final DirectorStorage directorStorage;
 
     @Override
     public Film findFilmById(Long filmId) {
@@ -136,27 +137,27 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getFilmsByDirectorId(Long id, String sortBy) {
-        try {
-            jdbcTemplate.queryForObject("SELECT * FROM directors WHERE id=?", (rs, rowNum) -> new Director(
-                    (long) rs.getInt("id"),
-                    rs.getString("name")
-            ), id);
-        } catch (EmptyResultDataAccessException e) {
-            throw new NotFoundException("Режиссер не найден");
+        directorStorage.getDirectorByID(id);
+        String sql;
+        if ("year".equalsIgnoreCase(sortBy)) {
+            sql = """
+                SELECT f.*
+                FROM films f INNER JOIN film_director fd ON f.film_id = fd.film_id
+                WHERE fd.director_id = ?
+                ORDER BY f.release_date;
+                """;
+        } else {
+            sql = """
+                SELECT f.*
+                FROM films f INNER JOIN film_director fd ON f.film_id = fd.film_id
+                INNER JOIN film_likes fl ON fl.film_id = f.film_id
+                WHERE fd.director_id = ?
+                GROUP BY f.film_id
+                ORDER BY count(fl.*) DESC;
+                """;
         }
-        if (sortBy.equals("year")) {
-            sortBy = "release_date";
-        }
-        String sql = """
-                SELECT films.film_id, films.name, films.description, films.release_date, films.duration,
-                films.rating_id
-                FROM directors d
-                JOIN film_director fd ON d.id=fd.director_id
-                JOIN films ON fd.film_id=films.film_id
-                WHERE d.id=?
-                ORDER BY """ + sortBy;
         List<Film> films = jdbcTemplate.query(sql, filmRowMapper, id);
-        log.info("Получен список фильмов режиссера");
+        log.info("Получен список фильмов длиной {} режиссера {}", films.size(), id);
         return films;
     }
 }

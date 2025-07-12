@@ -32,4 +32,16 @@ public class DirectorService {
     public void deleteDirector(Long id) {
         directorStorage.deleteDirector(id);
     }
+
+    public void addDirectorsToFilm(Long filmId, List<Director> directors) {
+        directorStorage.addDirectorsToFilm(filmId, directors);
+    }
+
+    public void removeDirectorsFromFilm(Long filmId) {
+        directorStorage.removeDirectorsFromFilm(filmId);
+    }
+
+    public List<Director> getDirectorsOfFilm(Long filmId) {
+        return directorStorage.getDirectorsOfFilm(filmId);
+    }
 }

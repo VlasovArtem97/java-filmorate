@@ -2,7 +2,9 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
@@ -11,6 +13,8 @@ import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.mappers.DirectorRowMapper;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,5 +72,51 @@ public class DirectorDbStorage implements DirectorStorage {
         String sql = "DELETE FROM directors WHERE id = ?";
         jdbcTemplate.update(sql, id);
         log.info("Режиссер с id={} удалён", id);
+    }
+
+    @Override
+    public void addDirectorsToFilm(Long filmId, List<Director> directors) {
+        final String sql = "INSERT INTO film_director(film_id, director_id) VALUES (?, ?);";
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setLong(1, filmId);
+                ps.setLong(2, directors.get(i).getId());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return directors.size();
+            }
+        });
+    }
+
+    @Override
+    public void removeDirectorsFromFilm(Long filmId) {
+        final String sql = "DELETE FROM film_director WHERE film_id = ?;";
+        try {
+            int n = jdbcTemplate.update(sql, filmId);
+            log.info("Удалено {} записей режиссеров фильма {}", n, filmId);
+        } catch (DataAccessException e) {
+            final String msg = "Отказ операции удаления режиссеров по фильму";
+            log.error(msg, e);
+            throw new IllegalStateException(msg, e);
+        }
+    }
+
+    @Override
+    public List<Director> getDirectorsOfFilm(Long filmId) {
+        final String sql = """
+                SELECT d.*
+                FROM directors d INNER JOIN film_director fd ON d.id = fd.director_id
+                WHERE fd.film_id = ?;
+                """;
+        try {
+            List<Director> directors = jdbcTemplate.query(sql, new DirectorRowMapper(), filmId);
+            log.info("Получен список из {} режиссеров фильма {}", directors.size(), filmId);
+            return directors;
+        } catch (DataAccessException e) {
+            throw new IllegalStateException("Отказ операции получения списка режиссеров", e);
+        }
     }
 }
