@@ -110,6 +110,7 @@ public class FilmService {
         commonFilms.forEach(film -> {
             film.setMpa(ratingService.getRatingById(film.getMpaId()));
             film.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(film.getId())));
+            film.setDirectors(directorService.getDirectorsOfFilm(film.getId()));
         });
         log.info("Возвращён список фильмов длиной {}", commonFilms.size());
         return commonFilms;
