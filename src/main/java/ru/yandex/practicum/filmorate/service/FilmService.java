@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.storage.interfacedatabase.FilmStorage;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -91,15 +92,9 @@ public class FilmService {
         filmStorage.removingALike(filmId, userId);
     }
 
-    public Collection<Film> listOfPopularMovies(int count) {
+    public List<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {
         log.info("Получен запрос на получения - {} популярных фильмов", count);
-        Collection<Film> films = filmStorage.listOfPopularMovies(count);
-        films.forEach(film -> {
-            film.setMpa(ratingService.getRatingById(film.getMpaId()));
-            film.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(film.getId())));
-        });
-        log.info("Список популярных фильмов - {}", films);
-        return films;
+        return filmStorage.getPopularFilms(count, genreId, year);
     }
 
     public Collection<Film> getRecommendations(Long userId) {
@@ -114,7 +109,6 @@ public class FilmService {
         log.info("Получен список из {} рекомендаций для пользователя {}", films.size(), userId);
         return films;
     }
-
 
     public Collection<Film> getCommonFilms(long userId, long friendId) {
         log.info("Получен запрос списка общих фильмов пользователей {} и {}", userId, friendId);
