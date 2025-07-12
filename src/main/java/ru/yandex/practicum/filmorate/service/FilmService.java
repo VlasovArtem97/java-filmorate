@@ -105,7 +105,14 @@ public class FilmService {
     public Collection<Film> getRecommendations(Long userId) {
         log.info("Получен запрос на получение списка рекомендаций для пользователя с id - {}", userId);
         userService.gettingAUserById(userId);
-        return filmStorage.getRecommendedMovies(userId);
+        var films = filmStorage.getRecommendedMovies(userId);
+        films.forEach(film -> {
+            film.setMpa(ratingService.getRatingById(film.getMpaId()));
+            film.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(film.getId())));
+            film.setDirectors(directorService.getDirectorsOfFilm(film.getId()));
+        });
+        log.info("Получен список из {} рекомендаций для пользователя {}", films.size(), userId);
+        return films;
     }
 
 
