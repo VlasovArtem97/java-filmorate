@@ -20,6 +20,7 @@ public class FilmService {
     private final UserService userService;
     private final GenreService genreService;
     private final RatingService ratingService;
+    private final DirectorService directorService;
 
     public Collection<Film> gettingFilms() {
         return filmStorage.gettingFilms();
@@ -37,9 +38,15 @@ public class FilmService {
         if (ratingMpa.isPresent()) {
             ratingService.getRatingById(film.getMpa().getId());
         }
+        if (film.getDirectors() != null) {
+            film.getDirectors().forEach(director -> directorService.getDirectorByID(director.getId()));
+            directorService.removeDirectorsFromFilm(film.getId());
+            directorService.addDirectorsToFilm(film.getId(), film.getDirectors());
+        }
         Film filmUpdate = filmStorage.updateFilm(film);
         filmUpdate.setMpa(ratingService.getRatingById(filmUpdate.getMpaId()));
         filmUpdate.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(film.getId())));
+        filmUpdate.setDirectors(directorService.getDirectorsOfFilm(film.getId()));
         log.info("Обновленный фильм - {}", filmUpdate);
         return filmUpdate;
     }
@@ -57,7 +64,7 @@ public class FilmService {
         genreService.addGenresFilm(newFilm.getId(), film.getGenres());
         newFilm.setMpa(ratingService.getRatingById(newFilm.getMpa().getId()));
         newFilm.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(newFilm.getId())));
-        log.info("LДобавленный фильм - {}", newFilm);
+        log.info("Добавленный фильм - {}", newFilm);
         return newFilm;
     }
 
@@ -106,5 +113,16 @@ public class FilmService {
         });
         log.info("Возвращён список фильмов длиной {}", commonFilms.size());
         return commonFilms;
+    }
+
+    public Collection<Film> getFilmsByDirectorId(Long id, String sortBy) {
+        log.info("Поступил GET-запрос на получение списка фильмов sortBy={}, directorId={}", sortBy, id);
+        var films = filmStorage.getFilmsByDirectorId(id, sortBy);
+        films.forEach(film -> {
+            film.setMpa(ratingService.getRatingById(film.getMpaId()));
+            film.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(film.getId())));
+            film.setDirectors(directorService.getDirectorsOfFilm(film.getId()));
+        });
+        return films;
     }
 }
