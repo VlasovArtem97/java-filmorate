@@ -10,7 +10,9 @@ import ru.yandex.practicum.filmorate.annotation.ReleaseDateConstraint;
 import ru.yandex.practicum.filmorate.interfaces.Marker;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -36,10 +38,11 @@ public class Film {
 
     private Set<Genre> genres = new LinkedHashSet<>();
 
+    private List<Director> directors = new ArrayList<>();
+
     private RatingMpa mpa;
 
     @ToString.Exclude
     @JsonIgnore
     private Long mpaId;
-
 }
