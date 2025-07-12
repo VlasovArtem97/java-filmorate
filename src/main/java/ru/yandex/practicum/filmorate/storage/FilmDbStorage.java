@@ -140,7 +140,7 @@ public class FilmDbStorage implements FilmStorage {
                     ORDER BY COUNT(fl.user_id) DESC
                     LIMIT ?
                     """;
-            films = jdbcTemplate.query(sql, filmRowMapper, genreId, genreId, year, count);
+            films = jdbcTemplate.query(sql, filmRowMapper, genreId, year, count);
         }
         log.info("Получен список популярных фильмов. Количество популярных фильмов = {}", films.size());
         return films;
