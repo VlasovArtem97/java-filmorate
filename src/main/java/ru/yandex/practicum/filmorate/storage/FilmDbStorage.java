@@ -9,6 +9,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.interfacedatabase.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.mappers.FilmRowMapper;
 
@@ -25,6 +26,7 @@ import java.util.List;
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmRowMapper filmRowMapper;
+    private final DirectorStorage directorStorage;
 
     @Override
     public Film findFilmById(Long filmId) {
@@ -131,5 +133,31 @@ public class FilmDbStorage implements FilmStorage {
             throw new IllegalStateException("Не удалось поставить лайк фильму с id " +
                     filmId + "пользователем с id - " + userId + " " + e.getMessage());
         }
+    }
+
+    @Override
+    public List<Film> getFilmsByDirectorId(Long id, String sortBy) {
+        directorStorage.getDirectorByID(id);
+        String sql;
+        if ("year".equalsIgnoreCase(sortBy)) {
+            sql = """
+                SELECT f.*
+                FROM films f INNER JOIN film_director fd ON f.film_id = fd.film_id
+                WHERE fd.director_id = ?
+                ORDER BY f.release_date;
+                """;
+        } else {
+            sql = """
+                SELECT f.*
+                FROM films f INNER JOIN film_director fd ON f.film_id = fd.film_id
+                INNER JOIN film_likes fl ON fl.film_id = f.film_id
+                WHERE fd.director_id = ?
+                GROUP BY f.film_id
+                ORDER BY count(fl.*) DESC;
+                """;
+        }
+        List<Film> films = jdbcTemplate.query(sql, filmRowMapper, id);
+        log.info("Получен список фильмов длиной {} режиссера {}", films.size(), id);
+        return films;
     }
 }
