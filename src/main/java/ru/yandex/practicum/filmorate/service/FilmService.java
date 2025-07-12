@@ -116,6 +116,20 @@ public class FilmService {
     }
 
 
+    public Collection<Film> getCommonFilms(long userId, long friendId) {
+        log.info("Получен запрос списка общих фильмов пользователей {} и {}", userId, friendId);
+        userService.gettingAUserById(userId);
+        userService.gettingAUserById(friendId);
+        Collection<Film> commonFilms = filmStorage.listOfCommonFilms(userId, friendId);
+        commonFilms.forEach(film -> {
+            film.setMpa(ratingService.getRatingById(film.getMpaId()));
+            film.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(film.getId())));
+            film.setDirectors(directorService.getDirectorsOfFilm(film.getId()));
+        });
+        log.info("Возвращён список фильмов длиной {}", commonFilms.size());
+        return commonFilms;
+    }
+
     public Collection<Film> getFilmsByDirectorId(Long id, String sortBy) {
         log.info("Поступил GET-запрос на получение списка фильмов sortBy={}, directorId={}", sortBy, id);
         var films = filmStorage.getFilmsByDirectorId(id, sortBy);
