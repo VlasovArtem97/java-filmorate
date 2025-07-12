@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.interfacedatabase;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface FilmStorage {
 
@@ -18,7 +19,7 @@ public interface FilmStorage {
 
     void removingALike(Long filmId, Long userId);
 
-    Collection<Film> listOfPopularMovies(int count);
+    List<Film> getPopularFilms(Integer count, Integer genreId, Integer year);
 
     Collection<Film> getRecommendedMovies(Long userId);
 
