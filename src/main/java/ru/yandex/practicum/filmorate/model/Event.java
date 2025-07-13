@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
 import lombok.AllArgsConstructor;
@@ -8,12 +7,21 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.interfaces.Marker;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Event {
+
+    public enum Type {
+        LIKE, FRIEND, REVIEW
+    }
+
+    public enum Operation {
+        ADD, UPDATE, REMOVE
+    }
 
     @Null(groups = Marker.OnCreate.class)
     @NotNull(groups = Marker.OnUpdate.class)
@@ -25,15 +33,15 @@ public class Event {
     @NotNull(groups = Marker.OnCreate.class)
     private Long userId;
 
-    @NotBlank(groups = Marker.OnCreate.class)
-    private String eventType;
+    @NotNull(groups = Marker.OnCreate.class)
+    private Type eventType;
 
-    @NotBlank(groups = Marker.OnCreate.class)
-    private String operation;
+    @NotNull(groups = Marker.OnCreate.class)
+    private Operation operation;
 
     private Long entityId;
 
-    public Event(Long userId, String eventType, String operation, Long entityId) {
-        this(0L, Instant.now().toEpochMilli(), userId, eventType, operation, entityId);
+    public Event(Long userId, Type eventType, Operation operation, Long entityId) {
+        this(0L, Timestamp.from(Instant.now()).getTime(), userId, eventType, operation, entityId);
     }
 }

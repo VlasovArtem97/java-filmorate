@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.interfaces.Marker;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -23,7 +22,6 @@ public class UserController {
 
     private final UserService userService;
     private final FilmService filmService;
-    private final EventService eventService;
 
     @GetMapping("/{id}")
     public User gettingAUserById(@Positive @PathVariable("id") Long userId) {
@@ -75,6 +73,6 @@ public class UserController {
 
     @GetMapping("/{id}/feed")
     public Collection<Event> getUserEvents(@Positive @PathVariable("id") Long userId) {
-        return eventService.getUserEvents(userId);
+        return userService.getUserEvents(userId);
     }
 }

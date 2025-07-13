@@ -10,7 +10,7 @@ import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.EventStorage;
 import ru.yandex.practicum.filmorate.storage.mappers.EventRowMapper;
 
-import java.time.Instant;
+import java.sql.Timestamp;
 import java.util.Collection;
 
 @Repository("EventDbStorage")
@@ -35,61 +35,57 @@ public class EventDbStorage implements EventStorage {
     }
 
     private void addEvent(Event event) {
-        event.setTimestamp(Instant.now().toEpochMilli());
         final String sql = """
                 INSERT INTO events (timestamp, user_id, event_type, operation, entity_id)
                 VALUES (?, ?, ?, ?, ?);
                 """;
-        jdbcTemplate.update(sql, event.getTimestamp(), event.getUserId(), event.getEventType(),
-                event.getOperation(), event.getEntityId());
+        jdbcTemplate.update(sql, new Timestamp(event.getTimestamp()), event.getUserId(),
+                event.getEventType().name(), event.getOperation().name(), event.getEntityId());
         log.info("Зафиксировано действие пользователя {}", event);
     }
 
     @Override
     public void addUserSetLikeEvent(Long userId, Long filmId) {
-        addEvent(new Event(userId, "LIKE", "ADD", filmId));
+        addEvent(new Event(userId, Event.Type.LIKE, Event.Operation.ADD, filmId));
     }
 
     @Override
     public void addUserRemoveLikeEvent(Long userId, Long filmId) {
-        addEvent(new Event(userId, "LIKE", "REMOVE", filmId));
+        addEvent(new Event(userId, Event.Type.LIKE, Event.Operation.REMOVE, filmId));
     }
 
     @Override
     public void addUserAddFriendEvent(Long userId, Long friendId) {
-        addEvent(new Event(userId, "FRIEND", "ADD", friendId));
+        addEvent(new Event(userId, Event.Type.FRIEND, Event.Operation.ADD, friendId));
     }
 
     @Override
     public void addUserRemoveFriendEvent(Long userId, Long friendId) {
-        addEvent(new Event(userId, "FRIEND", "REMOVE", friendId));
+        addEvent(new Event(userId, Event.Type.FRIEND, Event.Operation.REMOVE, friendId));
     }
 
     @Override
     public void addUserAddReviewEvent(Long userId, Long reviewId) {
-        addEvent(new Event(userId, "REVIEW", "ADD", reviewId));
+        addEvent(new Event(userId, Event.Type.REVIEW, Event.Operation.ADD, reviewId));
     }
 
     @Override
     public void addUserUpdateReviewEvent(Long userId, Long reviewId) {
-        addEvent(new Event(userId, "REVIEW", "UPDATE", reviewId));
+        addEvent(new Event(userId, Event.Type.REVIEW, Event.Operation.UPDATE, reviewId));
     }
 
     @Override
     public void addUserRemoveReviewEvent(Long userId, Long reviewId) {
-        addEvent(new Event(userId, "REVIEW", "REMOVE", reviewId));
+        addEvent(new Event(userId, Event.Type.REVIEW, Event.Operation.REMOVE, reviewId));
     }
 
     @Override
     public void eraseUserReferencedEvents(Long userId) {
         final String sql = """
                 DELETE FROM events
-                WHERE (user_id = ?)
-                   OR (event_type = 'FRIEND' AND entity_id = ?)
-                   OR (event_type = 'REVIEW' AND entity_id IN (
-                       SELECT entity_id FROM events WHERE user_id = ?));
+                WHERE (user_id = ?) OR (event_type = 'FRIEND' AND entity_id = ?);
                 """;
-        int n = jdbcTemplate.update(sql, userId, userId);
+        int n = jdbcTemplate.update(sql, userId);
         log.info("Удалено {} записей ленты событий, связанных с пользователем {}", n, userId);
     }
 
@@ -97,7 +93,7 @@ public class EventDbStorage implements EventStorage {
     public void eraseFilmReferencedEvents(Long filmId) {
         final String sql = """
                 DELETE FROM events
-                WHERE event_type = 'LIKE' AND entity_id = ?;
+                WHERE (event_type = 'LIKE' AND entity_id = ?);
                 """;
         int n = jdbcTemplate.update(sql, filmId);
         log.info("Удалено {} записей ленты событий, связанных с фильмом {}", n, filmId);

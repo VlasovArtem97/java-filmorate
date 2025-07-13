@@ -14,14 +14,9 @@ import java.util.Collection;
 public class EventService {
 
     private final EventStorage eventStorage;
-    private final UserService userService;
 
     public Collection<Event> getUserEvents(Long userId) {
-        log.info("Запрос на ленту событий пользователя {}", userId);
-        userService.gettingAUserById(userId);
-        Collection<Event> userEvents = eventStorage.getUserEvents(userId);
-        log.info("Запрос на ленту событий пользователя {} вернул список длиной {}", userId, userEvents.size());
-        return userEvents;
+        return eventStorage.getUserEvents(userId);
     }
 
     public void addUserSetLikeEvent(Long userId, Long filmId) {
@@ -50,5 +45,29 @@ public class EventService {
 
     public void addUserRemoveReviewEvent(Long userId, Long reviewId) {
         eventStorage.addUserRemoveReviewEvent(userId, reviewId);
+    }
+
+    /**
+     * Удаляет все записи ленты событий, прямо или косвенно связанные с указанным пользователем.<br>
+     * Удаляются следующие записи:<br>
+     * <li> Записи действий данного пользователя;</li>
+     * <li> Записи действий, связанные с добавлением в друзья или исключением из них данного пользователя;</li>
+     * <b>Предполагается, что любые действия с отзывами может выполнять только автор этого отзыва</b>
+     * @param userId ID пользователя
+     */
+    public void eraseUserReferencedEvents(Long userId) {
+        eventStorage.eraseUserReferencedEvents(userId);
+    }
+
+    /**
+     * Удаляет все записи ленты событий, прямо или косвенно связанные с указанным фильмом.<br>
+     * Удаляются следующие записи:<br>
+     * <li> Записи установки или удаления лайка к данному фильму;</li>
+     * <b>Удаление записей действий с отзывами к данному фильму невозможно,
+     * поскольку после удаления отзыва, запись об отзыве должна остаться в ленте</b>
+     * @param filmId ID фильма
+     */
+    public void eraseFilmReferencedEvents(Long filmId) {
+        eventStorage.eraseFilmReferencedEvents(filmId);
     }
 }

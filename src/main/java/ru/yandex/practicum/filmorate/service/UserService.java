@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.UserStorage;
 
@@ -66,5 +67,13 @@ public class UserService {
     public Collection<User> gettingUser() {
         log.info("Получен запрос на получения списка пользователей");
         return userStorage.gettingUser();
+    }
+
+    public Collection<Event> getUserEvents(Long userId) {
+        log.info("Запрос на ленту событий пользователя {}", userId);
+        gettingAUserById(userId);
+        Collection<Event> userEvents = eventService.getUserEvents(userId);
+        log.info("Запрос на ленту событий пользователя {} вернул список длиной {}", userId, userEvents.size());
+        return userEvents;
     }
 }
