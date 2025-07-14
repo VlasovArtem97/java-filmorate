@@ -3,18 +3,21 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.interfacedatabase.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.mappers.FilmRowMapper;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -25,6 +28,7 @@ import java.util.List;
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmRowMapper filmRowMapper;
+    private final DirectorStorage directorStorage;
 
     @Override
     public Film findFilmById(Long filmId) {
@@ -147,6 +151,151 @@ public class FilmDbStorage implements FilmStorage {
             throw new IllegalStateException("Не удалось поставить лайк фильму с id " +
                     filmId + "пользователем с id - " + userId + " " + e.getMessage());
         }
+    }
+
+    @Override
+    public Collection<Film> getRecommendedMovies(Long userId) {
+
+        /*
+         Принцип работы алгоритма:
+
+         1. Находим максимально похожего пользователя
+         1.1 Находим фильмы, которые лайкнул пользователь userId
+         1.2 Для каждого пользователя (кроме userId) рассчитываем число поставленных лайков этих фильмов;
+         1.3 Сортируем по уменьшению этого числа;
+         1.4 Получаем id первого пользователя из полученного списка
+
+         2. Формируем список рекомендуемых фильмов
+         2.1 Получаем перечень id фильмов, которые лайкнул пользователь id, но не лайкнул пользователь userId
+         2.2 Получаем данные этих фильмов
+        */
+
+        final String query1 = """
+                SELECT uc.uid FROM (
+                    SELECT u.user_id AS uid, count(fl.*) AS cnt
+                    FROM users u INNER JOIN film_likes fl ON u.user_id = fl.USER_ID
+                    WHERE u.user_id != ? AND (fl.film_id IN (SELECT film_id FROM film_likes WHERE user_id = ?))
+                    GROUP BY u.user_id
+                    ORDER BY cnt desc
+                    LIMIT 1) as uc;
+                """;
+        // Здесь для анализа по типу Slope One можно (путем настройки LIMIT) отрегулировать
+        // число близких пользователей и применить более серьезную методику
+        var sameUserIdList = jdbcTemplate.queryForList(query1, Long.class, userId, userId);
+        if (sameUserIdList.isEmpty()) {
+            log.info("Для пользователя {} получен пустой список рекомендованных фильмов", userId);
+            return List.of();
+        }
+
+        String query2 = """
+                SELECT * FROM films WHERE film_id IN (
+                    SELECT f.film_id
+                    FROM films f INNER JOIN film_likes fl ON f.film_id = fl.film_id
+                    WHERE fl.user_id = ?
+                    EXCEPT
+                    SELECT f.film_id
+                    FROM films f INNER JOIN film_likes fl ON f.film_id = fl.film_id
+                    WHERE fl.user_id = ?);
+                """;
+        long sameUserId = sameUserIdList.getFirst();
+        List<Film> films = jdbcTemplate.query(query2, filmRowMapper, sameUserId, userId);
+        log.info("Для пользователя {} получен список из {} рекомендованных фильмов", userId, films.size());
+        return films;
+    }
+
+    @Override
+    public Collection<Film> listOfCommonFilms(long userId, long friendId) {
+        String query = """
+                SELECT f.* FROM films AS f JOIN (
+                    SELECT film_id FROM film_likes GROUP BY film_id ORDER BY COUNT(*) DESC
+                ) AS pf ON f.film_id = pf.film_id
+                WHERE f.film_id IN (
+                    SELECT film_id from FILM_LIKES WHERE USER_ID = ?
+                    INTERSECT
+                    SELECT FILM_ID from FILM_LIKES WHERE USER_ID = ?
+                );
+                """;
+        try {
+            List<Film> films = jdbcTemplate.query(query, filmRowMapper, userId, friendId);
+            log.info("Получен список из общих фильмов длиной {}", films.size());
+            return films;
+        } catch (DataAccessException e) {
+            String msg = "Не удалось получить список общих фильмов";
+            log.error(msg);
+            throw new IllegalStateException(msg);
+        }
+    }
+
+    @Override
+    public List<Film> getFilmsByDirectorId(Long id, String sortBy) {
+        directorStorage.getDirectorByID(id);
+        String sql;
+        if ("year".equalsIgnoreCase(sortBy)) {
+            sql = """
+                    SELECT f.*
+                    FROM films f INNER JOIN film_director fd ON f.film_id = fd.film_id
+                    WHERE fd.director_id = ?
+                    ORDER BY f.release_date;
+                    """;
+        } else {
+            sql = """
+                    SELECT f.*
+                    FROM films f INNER JOIN film_director fd ON f.film_id = fd.film_id
+                    INNER JOIN film_likes fl ON fl.film_id = f.film_id
+                    WHERE fd.director_id = ?
+                    GROUP BY f.film_id
+                    ORDER BY count(fl.*) DESC;
+                    """;
+        }
+        List<Film> films = jdbcTemplate.query(sql, filmRowMapper, id);
+        log.info("Получен список фильмов длиной {} режиссера {}", films.size(), id);
+        return films;
+    }
+
+    @Override
+    public Collection<Film> getFilmsByQuery(String query, String[] by) {
+        List<Film> films = new ArrayList<>();
+        try {
+            if (by.length == 1 && by[0].equalsIgnoreCase("title")) {
+                String querySelect = """
+                        SELECT f.*, COUNT(fl.user_id) AS likes FROM films AS f
+                        LEFT JOIN film_likes AS fl ON fl.film_id = f.film_id
+                        WHERE f.name ILIKE ?
+                        GROUP BY f.film_id
+                        ORDER BY likes DESC
+                        """;
+                films = jdbcTemplate.query(querySelect, filmRowMapper, "%" + query + "%");
+            } else if (by.length == 1 && by[0].equalsIgnoreCase("director")) {
+                String querySelect = """
+                        SELECT f.*, COUNT(fl.user_id) AS likes FROM films AS f
+                        LEFT JOIN film_director AS fd ON f.film_id = fd.film_id
+                        LEFT JOIN directors AS d ON d.id = fd.director_id
+                        LEFT JOIN film_likes AS fl ON fl.film_id = f.film_id
+                        WHERE d.name ILIKE ?
+                        GROUP BY f.film_id
+                        ORDER BY likes DESC
+                        """;
+                films = jdbcTemplate.query(querySelect, filmRowMapper, "%" + query + "%");
+            } else if (by.length == 2) {
+                String querySelect = """
+                        SELECT f.*, COUNT(fl.user_id) AS likes FROM films AS f
+                        LEFT JOIN film_director AS fd ON f.film_id = fd.film_id
+                        LEFT JOIN directors AS d ON d.id = fd.director_id
+                        LEFT JOIN film_likes AS fl ON fl.film_id = f.film_id
+                        WHERE f.name ILIKE ? OR d.name ILIKE ?
+                        GROUP BY f.film_id
+                        ORDER BY likes DESC
+                        """;
+                films = jdbcTemplate.query(querySelect, filmRowMapper, "%" + query + "%", "%" + query + "%");
+            } else {
+                log.error("Переданы неверные параметры запроса by - {}", (Object) by);
+                throw new IllegalStateException("Переданы неверные параметры запроса by");
+            }
+        } catch (DataAccessException e) {
+            log.error("Ошибка при обращении к базе данных");
+            throw new IllegalStateException("Ошибка при обращении к базе данных: " + e.getMessage());
+        }
+        return films;
     }
 
     @Override

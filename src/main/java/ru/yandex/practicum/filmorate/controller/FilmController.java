@@ -61,4 +61,21 @@ public class FilmController {
     public void deleteFilm(@Positive @PathVariable("id") Long filmId) {
         filmService.deleteFilm(filmId);
     }
+
+    @GetMapping("/common") // userId={userId}&friendId={friendId}
+    public Collection<Film> getCommonFilms(@Positive @RequestParam long userId,
+                                           @Positive @RequestParam long friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
+
+    @GetMapping("/director/{id}")
+    public Collection<Film> getFilmByDirectorId(@PathVariable("id") Long id, @RequestParam String sortBy) {
+        return filmService.getFilmsByDirectorId(id, sortBy);
+    }
+
+    // search?query=крад&by=director,title
+    @GetMapping("/search")
+    public Collection<Film> getFilmsByQuery(@RequestParam String query, @RequestParam String[] by) {
+        return filmService.getFilmsByQuery(query, by);
+    }
 }

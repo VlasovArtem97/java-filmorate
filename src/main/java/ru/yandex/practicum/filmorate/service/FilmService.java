@@ -20,6 +20,7 @@ public class FilmService {
     private final UserService userService;
     private final GenreService genreService;
     private final RatingService ratingService;
+    private final DirectorService directorService;
 
     public Collection<Film> gettingFilms() {
         return filmStorage.gettingFilms();
@@ -37,9 +38,13 @@ public class FilmService {
         if (ratingMpa.isPresent()) {
             ratingService.getRatingById(film.getMpa().getId());
         }
+        if (film.getDirectors() != null) {
+            film.getDirectors().forEach(director -> directorService.getDirectorByID(director.getId()));
+            directorService.removeDirectorsFromFilm(film.getId());
+            directorService.addDirectorsToFilm(film.getId(), film.getDirectors());
+        }
         Film filmUpdate = filmStorage.updateFilm(film);
-        filmUpdate.setMpa(ratingService.getRatingById(filmUpdate.getMpaId()));
-        filmUpdate.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(film.getId())));
+        addingFields(filmUpdate);
         log.info("Обновленный фильм - {}", filmUpdate);
         return filmUpdate;
     }
@@ -53,11 +58,16 @@ public class FilmService {
         if (ratingMpa.isPresent()) {
             film.setMpa(ratingService.getRatingById(film.getMpa().getId()));
         }
+        if (film.getDirectors() != null) {
+            film.getDirectors().forEach(director -> directorService.getDirectorByID(director.getId()));
+        }
         Film newFilm = filmStorage.addFilm(film);
+        directorService.addDirectorsToFilm(newFilm.getId(), film.getDirectors());
         genreService.addGenresFilm(newFilm.getId(), film.getGenres());
         newFilm.setMpa(ratingService.getRatingById(newFilm.getMpa().getId()));
         newFilm.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(newFilm.getId())));
-        log.info("LДобавленный фильм - {}", newFilm);
+        newFilm.setDirectors(directorService.getDirectorsOfFilm(newFilm.getId()));
+        log.info("Добавленный фильм - {}", newFilm);
         return newFilm;
     }
 
@@ -71,8 +81,7 @@ public class FilmService {
 
     public Film gettingAMovieById(Long filmId) {
         Film film1 = filmStorage.findFilmById(filmId);
-        film1.setMpa(ratingService.getRatingById(film1.getMpaId()));
-        film1.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(film1.getId())));
+        addingFields(film1);
         log.info("Полученный фильм - {}", film1);
         return film1;
     }
@@ -87,12 +96,53 @@ public class FilmService {
     public Collection<Film> listOfPopularMovies(int count) {
         log.info("Получен запрос на получения - {} популярных фильмов", count);
         Collection<Film> films = filmStorage.listOfPopularMovies(count);
-        films.forEach(film -> {
-            film.setMpa(ratingService.getRatingById(film.getMpaId()));
-            film.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(film.getId())));
-        });
+        films.forEach(this::addingFields);
         log.info("Список популярных фильмов - {}", films);
         return films;
+    }
+
+    public Collection<Film> getRecommendations(Long userId) {
+        log.info("Получен запрос на получение списка рекомендаций для пользователя с id - {}", userId);
+        userService.gettingAUserById(userId);
+        var films = filmStorage.getRecommendedMovies(userId);
+        films.forEach(this::addingFields);
+        log.info("Получен список из {} рекомендаций для пользователя {}", films.size(), userId);
+        return films;
+    }
+
+
+    public Collection<Film> getCommonFilms(long userId, long friendId) {
+        log.info("Получен запрос списка общих фильмов пользователей {} и {}", userId, friendId);
+        userService.gettingAUserById(userId);
+        userService.gettingAUserById(friendId);
+        Collection<Film> commonFilms = filmStorage.listOfCommonFilms(userId, friendId);
+        commonFilms.forEach(this::addingFields);
+        log.info("Возвращён список фильмов длиной {}", commonFilms.size());
+        return commonFilms;
+    }
+
+    public Collection<Film> getFilmsByDirectorId(Long id, String sortBy) {
+        log.info("Поступил GET-запрос на получение списка фильмов sortBy={}, directorId={}", sortBy, id);
+        var films = filmStorage.getFilmsByDirectorId(id, sortBy);
+        films.forEach(this::addingFields);
+        return films;
+    }
+
+    //Метод для поиска фильма по названию фильма или режиссеру
+    public Collection<Film> getFilmsByQuery(String query, String[] by) {
+        log.info("Получен запрос на поиск фильма по подстроке - {} в названии фильма или в имени режиссера - {}",
+                query, by);
+        Collection<Film> films = filmStorage.getFilmsByQuery(query, by);
+        films.forEach(this::addingFields);
+        log.info("В соответствии подстроки - {}, полученный список фильмов: {}", query, films);
+        return films;
+    }
+
+    //Метод для установки значений для возвращаемого объекта - film
+    public void addingFields(Film film) {
+        film.setMpa(ratingService.getRatingById(film.getMpaId()));
+        film.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(film.getId())));
+        film.setDirectors(directorService.getDirectorsOfFilm(film.getId()));
     }
 
     public void deleteFilm(Long filmId) {

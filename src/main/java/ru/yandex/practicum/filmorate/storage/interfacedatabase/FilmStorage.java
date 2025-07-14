@@ -25,4 +25,12 @@ public interface FilmStorage {
     void removeAllFilmGenres(Long filmId);
 
     void deleteFilm(Long filmId);
+
+    Collection<Film> getRecommendedMovies(Long userId);
+
+    Collection<Film> listOfCommonFilms(long userId, long friendId);
+
+    Collection<Film> getFilmsByDirectorId(Long id, String sortBy);
+
+    Collection<Film> getFilmsByQuery(String query, String[] by);
 }
