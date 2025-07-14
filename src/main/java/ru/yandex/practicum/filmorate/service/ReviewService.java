@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import org.springframework.context.annotation.Lazy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,8 +15,8 @@ import java.util.Collection;
 public class ReviewService {
 
     private final ReviewStorage reviewStorage;
-    private final FilmService filmService;
-    private final UserService userService;
+    private final @Lazy FilmService filmService;
+    private final @Lazy UserService userService;
 
     //Добавление нового отзыва
     public Review createReview(Review review) {
