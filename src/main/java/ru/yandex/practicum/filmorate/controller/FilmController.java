@@ -69,4 +69,10 @@ public class FilmController {
     public Collection<Film> getFilmByDirectorId(@PathVariable("id") Long id, @RequestParam String sortBy) {
         return filmService.getFilmsByDirectorId(id, sortBy);
     }
+
+    // search?query=крад&by=director,title
+    @GetMapping("/search")
+    public Collection<Film> getFilmsByQuery(@RequestParam String query, @RequestParam String[] by) {
+        return filmService.getFilmsByQuery(query, by);
+    }
 }
