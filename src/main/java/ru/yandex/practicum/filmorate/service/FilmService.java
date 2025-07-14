@@ -21,6 +21,7 @@ public class FilmService {
     private final GenreService genreService;
     private final RatingService ratingService;
     private final DirectorService directorService;
+    private final ReviewService reviewService;
 
     public Collection<Film> gettingFilms() {
         return filmStorage.gettingFilms();
@@ -149,6 +150,10 @@ public class FilmService {
         log.info("Запрос на удаление фильма с id={}", filmId);
         filmStorage.removeAllFilmLikes(filmId);
         filmStorage.removeAllFilmGenres(filmId);
+        // удалить все лайки/дизлайки к отзывам этого фильма
+        reviewService.deleteReviewRatingsByFilm(filmId);
+        // удалить все сами отзывы о фильме
+        reviewService.deleteReviewsByFilm(filmId);
         filmStorage.deleteFilm(filmId);
     }
 }

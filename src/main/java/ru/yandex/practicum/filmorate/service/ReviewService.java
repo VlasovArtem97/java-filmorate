@@ -115,4 +115,25 @@ public class ReviewService {
         userService.gettingAUserById(userId);
         reviewStorage.deleteReviewDislike(reviewId, userId);
     }
+
+    /** Удалить все оценки к отзывам пользователя */
+    public void deleteReviewRatingsByUser(Long userId) {
+        reviewStorage.deleteReviewRatingsByUser(userId);
+    }
+
+    /** Удалить все отзывы пользователя */
+    public void deleteReviewsByUser(Long userId) {
+        reviewStorage.deleteReviewsByUser(userId);
+    }
+
+    /** Удалить все оценки к отзывам фильма */
+    public void deleteReviewRatingsByFilm(Long filmId) {
+        reviewStorage.deleteReviewRatingsByFilm(filmId);
+    }
+
+    /** Удалить все отзывы о фильме */
+    public void deleteReviewsByFilm(Long filmId) {
+        reviewStorage.deleteReviewsByFilm(filmId);
+    }
+
 }

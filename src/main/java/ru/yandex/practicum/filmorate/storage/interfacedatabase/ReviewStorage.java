@@ -35,4 +35,17 @@ public interface ReviewStorage {
 
     //пользователь удаляет дизлайк отзыву
     void deleteReviewDislike(Long reviewId, Long userId);
+
+    // Удалить все лайки/дизлайки (evaluation) ко всем отзывам данного пользователя
+    void deleteReviewRatingsByUser(Long userId);
+
+    // Удалить все отзывы данного пользователя
+    void deleteReviewsByUser(Long userId);
+
+    // Удалить все лайки/дизлайки ко всем отзывам для данного фильма
+    void deleteReviewRatingsByFilm(Long filmId);
+
+    // Удалить все отзывы для данного фильма
+    void deleteReviewsByFilm(Long filmId);
+
 }

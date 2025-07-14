@@ -255,4 +255,47 @@ public class ReviewDbStorage implements ReviewStorage {
             return Optional.empty();
         }
     }
+
+    @Override
+    public void deleteReviewRatingsByUser(Long userId) {
+        jdbcTemplate.update(
+                "DELETE FROM reviews_ratings_films_by_users WHERE user_id = ?",
+                userId
+        );
+    }
+
+    @Override
+    public void deleteReviewsByUser(Long userId) {
+        // сначала удалить все голосования, затем сами отзывы
+        deleteReviewRatingsByUser(userId);
+        jdbcTemplate.update(
+                "DELETE FROM reviews WHERE user_id = ?",
+                userId
+        );
+    }
+
+    @Override
+    public void deleteReviewRatingsByFilm(Long filmId) {
+        // найдём все отзывы этого фильма
+        List<Long> ids = jdbcTemplate.queryForList(
+                "SELECT review_id FROM reviews WHERE film_id = ?",
+                Long.class, filmId
+        );
+        // удалим все оценки к каждому
+        ids.forEach(rid -> jdbcTemplate.update(
+                "DELETE FROM reviews_ratings_films_by_users WHERE review_id = ?",
+                rid
+        ));
+    }
+
+    @Override
+    public void deleteReviewsByFilm(Long filmId) {
+        // сначала удалить голосования, потом отзывы
+        deleteReviewRatingsByFilm(filmId);
+        jdbcTemplate.update(
+                "DELETE FROM reviews WHERE film_id = ?",
+                filmId
+        );
+    }
+
 }
