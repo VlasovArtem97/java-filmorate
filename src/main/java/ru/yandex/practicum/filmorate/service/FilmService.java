@@ -148,12 +148,17 @@ public class FilmService {
 
     public void deleteFilm(Long filmId) {
         log.info("Запрос на удаление фильма с id={}", filmId);
+        // 1) удалить лайки к фильму
         filmStorage.removeAllFilmLikes(filmId);
+        // 2) удалить связи с жанрами
         filmStorage.removeAllFilmGenres(filmId);
-        // удалить все лайки/дизлайки к отзывам этого фильма
+        // 3) удалить все лайки/дизлайки к отзывам этого фильма
         reviewService.deleteReviewRatingsByFilm(filmId);
-        // удалить все сами отзывы о фильме
+        // 4) удалить все сами отзывы о фильме
         reviewService.deleteReviewsByFilm(filmId);
+        // 5) удалить связи с режиссёрами
+        directorService.removeDirectorsFromFilm(filmId);
+        // 6) удалить сам фильм
         filmStorage.deleteFilm(filmId);
     }
 }
