@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.RatingMpa;
@@ -21,7 +22,7 @@ public class FilmService {
     private final GenreService genreService;
     private final RatingService ratingService;
     private final DirectorService directorService;
-    private final ReviewService reviewService;
+    private final @Lazy ReviewService reviewService;
 
     public Collection<Film> gettingFilms() {
         return filmStorage.gettingFilms();
