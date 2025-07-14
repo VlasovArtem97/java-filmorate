@@ -160,6 +160,11 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public void removeAllFilmReviews(Long filmId) {
+        jdbcTemplate.update("DELETE FROM genres_films WHERE film_id = ?", filmId);
+    }
+
+    @Override
     public void deleteFilm(Long filmId) {
         int count = jdbcTemplate.update("DELETE FROM films WHERE film_id = ?", filmId);
         if (count == 0) {
