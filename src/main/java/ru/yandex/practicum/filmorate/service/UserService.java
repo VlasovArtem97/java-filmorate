@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.UserStorage;
@@ -14,7 +15,7 @@ import java.util.Collection;
 public class UserService {
 
     private final UserStorage userStorage;
-    private final ReviewService reviewService;
+    private final @Lazy ReviewService reviewService;
 
     public void addingAFriend(Long userId, Long userFriendId) {
         log.info("Получен запрос на добавление в список друзей от пользователя c id - {} с " +
