@@ -96,6 +96,7 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {
         List<Film> films;
         String sql;
+        try {
         if (genreId == null && year == null) {
             // без жанра и года
             sql = """
@@ -144,6 +145,11 @@ public class FilmDbStorage implements FilmStorage {
         }
         log.info("Получен список популярных фильмов. Количество популярных фильмов = {}", films.size());
         return films;
+        } catch (DataAccessException e) {
+            String msg = "Не удалось получить список популярных фильмов";
+            log.error(msg);
+            throw new IllegalStateException(msg);
+        }
     }
 
     @Override
