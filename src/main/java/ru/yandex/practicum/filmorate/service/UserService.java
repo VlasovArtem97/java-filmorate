@@ -15,7 +15,7 @@ import java.util.Collection;
 public class UserService {
 
     private final UserStorage userStorage;
-    private final @Lazy ReviewService reviewService;
+    //private final @Lazy ReviewService reviewService;
 
     public void addingAFriend(Long userId, Long userFriendId) {
         log.info("Получен запрос на добавление в список друзей от пользователя c id - {} с " +
@@ -73,9 +73,9 @@ public class UserService {
         userStorage.removeAllFriendships(userId);
         userStorage.removeAllLikesByUser(userId);
         // удалить все лайки/дизлайки к отзывам этого пользователя
-        reviewService.deleteReviewRatingsByUser(userId);
+        //reviewService.deleteReviewRatingsByUser(userId);
         // удалить все сами отзывы, которые он оставил
-        reviewService.deleteReviewsByUser(userId);
+        //reviewService.deleteReviewsByUser(userId);
         userStorage.deleteUser(userId);
     }
 }

@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.DataCleanupService;
 
 import java.util.Collection;
 
@@ -21,6 +22,7 @@ public class UserController {
 
     private final UserService userService;
     private final FilmService filmService;
+    private final DataCleanupService cleanupService;
 
     @GetMapping("/{id}")
     public User gettingAUserById(@Positive @PathVariable("id") Long userId) {
@@ -72,6 +74,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public void deleteUser(@Positive @PathVariable("id") Long userId) {
-        userService.deleteUser(userId);
+        //userService.deleteUser(userId);
+        cleanupService.deleteUserCompletely(userId);
     }
 }

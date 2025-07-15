@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.interfaces.Marker;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.DataCleanupService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -18,6 +19,7 @@ import java.util.Collection;
 public class FilmController {
 
     private final FilmService filmService;
+    private final DataCleanupService cleanupService;
 
     @PutMapping("/{id}/like/{userId}")
     public void addingLike(@Positive @PathVariable("id") Long filmId, @Positive @PathVariable Long userId) {
@@ -59,7 +61,8 @@ public class FilmController {
 
     @DeleteMapping("/{id}")
     public void deleteFilm(@Positive @PathVariable("id") Long filmId) {
-        filmService.deleteFilm(filmId);
+        //filmService.deleteFilm(filmId);
+        cleanupService.deleteFilmCompletely(filmId);
     }
 
     @GetMapping("/common") // userId={userId}&friendId={friendId}

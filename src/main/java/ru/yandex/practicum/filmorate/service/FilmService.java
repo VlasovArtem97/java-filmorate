@@ -22,7 +22,7 @@ public class FilmService {
     private final GenreService genreService;
     private final RatingService ratingService;
     private final DirectorService directorService;
-    private final @Lazy ReviewService reviewService;
+    //private final @Lazy ReviewService reviewService;
 
     public Collection<Film> gettingFilms() {
         return filmStorage.gettingFilms();
@@ -147,19 +147,19 @@ public class FilmService {
         film.setDirectors(directorService.getDirectorsOfFilm(film.getId()));
     }
 
-    public void deleteFilm(Long filmId) {
+    /*public void deleteFilm(Long filmId) {
         log.info("Запрос на удаление фильма с id={}", filmId);
         // 1) удалить лайки к фильму
         filmStorage.removeAllFilmLikes(filmId);
         // 2) удалить связи с жанрами
         filmStorage.removeAllFilmGenres(filmId);
         // 3) удалить все лайки/дизлайки к отзывам этого фильма
-        reviewService.deleteReviewRatingsByFilm(filmId);
+        //reviewService.deleteReviewRatingsByFilm(filmId);
         // 4) удалить все сами отзывы о фильме
-        reviewService.deleteReviewsByFilm(filmId);
+        //reviewService.deleteReviewsByFilm(filmId);
         // 5) удалить связи с режиссёрами
         directorService.removeDirectorsFromFilm(filmId);
         // 6) удалить сам фильм
         filmStorage.deleteFilm(filmId);
-    }
+    }*/
 }
