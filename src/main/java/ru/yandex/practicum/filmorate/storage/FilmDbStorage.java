@@ -322,7 +322,6 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
-
     @Override
     public void removeAllFilmLikes(Long filmId) {
         jdbcTemplate.update("DELETE FROM film_likes WHERE film_id = ?", filmId);

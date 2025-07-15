@@ -143,6 +143,7 @@ public class FilmService {
         log.info("В соответствии подстроки - {}, полученный список фильмов: {}", query, films);
         return films;
     }
+
     /** Удаление фильма и всех связанных с ним данных */
     @Transactional
     public void deleteFilm(Long filmId) {
@@ -155,6 +156,7 @@ public class FilmService {
         directorService.removeDirectorsFromFilm(filmId);
         filmStorage.deleteFilm(filmId);
     }
+
     //Метод для установки значений для возвращаемого объекта - film
     public void addingFields(Film film) {
         film.setMpa(ratingService.getRatingById(film.getMpaId()));
