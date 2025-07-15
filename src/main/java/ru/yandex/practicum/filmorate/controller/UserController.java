@@ -80,6 +80,6 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public void deleteUser(@Positive @PathVariable("id") Long userId) {
-        cleanupService.deleteUserCompletely(userId);
+        userService.deleteUser(userId);
     }
 }
