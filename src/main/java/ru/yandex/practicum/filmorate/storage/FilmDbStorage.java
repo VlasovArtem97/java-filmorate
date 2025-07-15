@@ -96,28 +96,20 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {
         List<Film> films;
         String sql;
-    /*@Override
-    public Collection<Film> listOfPopularMovies(int count) {
-        String query = "SELECT f.* FROM films AS f " +
-                "JOIN (SELECT film_id " +
-                "FROM film_likes " +
-                "GROUP BY film_id " +
-                "ORDER BY COUNT(*) DESC " +
-                "LIMIT ?) AS popular_film ON f.film_id = popular_film.film_id;";
         try {
-        if (genreId == null && year == null) {
-            // без жанра и года
-            sql = """
+            if (genreId == null && year == null) {
+                // без жанра и года
+                sql = """
                     SELECT f.* FROM films AS f
                     LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
                     GROUP BY f.film_id
                     ORDER BY COUNT(fl.user_id) DESC
                     LIMIT ?
                     """;
-            films = jdbcTemplate.query(sql, filmRowMapper, count);
-        } else if (genreId != null && year == null) {
-            // с жанром, но без года
-            sql = """
+                films = jdbcTemplate.query(sql, filmRowMapper, count);
+            } else if (genreId != null && year == null) {
+                // с жанром, но без года
+                sql = """
                     SELECT f.* FROM films AS f
                     LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
                     RIGHT JOIN genres_films as gf ON gf.film_id = f.film_id
@@ -126,10 +118,10 @@ public class FilmDbStorage implements FilmStorage {
                     ORDER BY COUNT(fl.user_id) DESC
                     LIMIT ?
                     """;
-            films = jdbcTemplate.query(sql, filmRowMapper, genreId, count);
-        } else if (genreId == null && year != null) {
-            // без жанра, но с годом
-            sql = """
+                films = jdbcTemplate.query(sql, filmRowMapper, genreId, count);
+            } else if (genreId == null && year != null) {
+                // без жанра, но с годом
+                sql = """
                     SELECT f.* FROM films AS f
                     LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
                     WHERE EXTRACT(YEAR FROM f.release_date) = ?
@@ -137,10 +129,10 @@ public class FilmDbStorage implements FilmStorage {
                     ORDER BY COUNT(fl.user_id) DESC
                     LIMIT ?
                     """;
-            films = jdbcTemplate.query(sql, filmRowMapper, year, count);
-        } else {
-            // с жанром, с годом
-            sql = """
+                films = jdbcTemplate.query(sql, filmRowMapper, year, count);
+            } else {
+                // с жанром, с годом
+                sql = """
                     SELECT f.* FROM films AS f
                     LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
                     RIGHT JOIN genres_films as gf ON gf.film_id = f.film_id
@@ -149,31 +141,15 @@ public class FilmDbStorage implements FilmStorage {
                     ORDER BY COUNT(fl.user_id) DESC
                     LIMIT ?
                     """;
-            films = jdbcTemplate.query(sql, filmRowMapper, genreId, year, count);
-        }
-        log.info("Получен список популярных фильмов. Количество популярных фильмов = {}", films.size());
-        return films;
+                films = jdbcTemplate.query(sql, filmRowMapper, genreId, year, count);
+            }
+            log.info("Получен список популярных фильмов. Количество популярных фильмов = {}", films.size());
+            return films;
         } catch (DataAccessException e) {
             String msg = "Не удалось получить список популярных фильмов";
             log.error(msg);
             throw new IllegalStateException(msg);
         }
-    }*/
-    @Override
-    public Collection<Film> listOfPopularMovies(int count) {
-        String sql = """
-        SELECT f.film_id, f.name, f.description, f.release_date,
-               f.duration, f.rating_id
-        FROM films AS f
-        LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
-        GROUP BY f.film_id, f.name, f.description,
-                 f.release_date, f.duration, f.rating_id
-        ORDER BY COUNT(fl.user_id) DESC
-        LIMIT ?
-        """;
-        List<Film> films = jdbcTemplate.query(sql, filmRowMapper, count);
-        log.info("Список из {} популярных (включая без лайков) фильмов получен: {}", count, films);
-        return films;
     }
 
     @Override
@@ -345,6 +321,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         return films;
     }
+
 
     @Override
     public void removeAllFilmLikes(Long filmId) {
