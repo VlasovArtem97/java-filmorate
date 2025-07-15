@@ -74,7 +74,6 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public void deleteUser(@Positive @PathVariable("id") Long userId) {
-        //userService.deleteUser(userId);
         cleanupService.deleteUserCompletely(userId);
     }
 }

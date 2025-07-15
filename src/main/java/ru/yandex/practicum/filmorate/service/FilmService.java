@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.RatingMpa;
@@ -22,7 +21,6 @@ public class FilmService {
     private final GenreService genreService;
     private final RatingService ratingService;
     private final DirectorService directorService;
-    //private final @Lazy ReviewService reviewService;
 
     public Collection<Film> gettingFilms() {
         return filmStorage.gettingFilms();
@@ -146,20 +144,4 @@ public class FilmService {
         film.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(film.getId())));
         film.setDirectors(directorService.getDirectorsOfFilm(film.getId()));
     }
-
-    /*public void deleteFilm(Long filmId) {
-        log.info("Запрос на удаление фильма с id={}", filmId);
-        // 1) удалить лайки к фильму
-        filmStorage.removeAllFilmLikes(filmId);
-        // 2) удалить связи с жанрами
-        filmStorage.removeAllFilmGenres(filmId);
-        // 3) удалить все лайки/дизлайки к отзывам этого фильма
-        //reviewService.deleteReviewRatingsByFilm(filmId);
-        // 4) удалить все сами отзывы о фильме
-        //reviewService.deleteReviewsByFilm(filmId);
-        // 5) удалить связи с режиссёрами
-        directorService.removeDirectorsFromFilm(filmId);
-        // 6) удалить сам фильм
-        filmStorage.deleteFilm(filmId);
-    }*/
 }
