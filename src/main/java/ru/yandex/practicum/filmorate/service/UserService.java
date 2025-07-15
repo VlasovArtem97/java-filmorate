@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.UserStorage;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 
