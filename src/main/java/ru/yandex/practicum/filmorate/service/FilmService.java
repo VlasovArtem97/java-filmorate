@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.RatingMpa;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.FilmStorage;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
