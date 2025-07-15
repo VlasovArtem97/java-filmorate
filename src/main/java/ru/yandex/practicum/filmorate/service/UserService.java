@@ -16,7 +16,6 @@ public class UserService {
 
     private final UserStorage userStorage;
     private final EventService eventService;
-    private final ReviewService reviewService;
 
     public void addingAFriend(Long userId, Long userFriendId) {
         log.info("Получен запрос на добавление в список друзей от пользователя c id - {} с " +
@@ -83,10 +82,6 @@ public class UserService {
         // предварительно очистить все зависимости
         userStorage.removeAllFriendships(userId);
         userStorage.removeAllLikesByUser(userId);
-        // удалить все лайки/дизлайки к отзывам
-        reviewService.deleteReviewRatingsByUser(userId);
-        // удалить все сами отзывы
-        reviewService.deleteReviewsByUser(userId);
         userStorage.deleteUser(userId);
     }
 }

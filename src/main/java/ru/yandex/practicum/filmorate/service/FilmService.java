@@ -24,7 +24,6 @@ public class FilmService {
     private final RatingService ratingService;
     private final DirectorService directorService;
     private final EventService eventService;
-    private final ReviewService reviewService;
 
     public Collection<Film> gettingFilms() {
         return filmStorage.gettingFilms();
@@ -142,19 +141,6 @@ public class FilmService {
         films.forEach(this::addingFields);
         log.info("В соответствии подстроки - {}, полученный список фильмов: {}", query, films);
         return films;
-    }
-
-    /** Удаление фильма и всех связанных с ним данных */
-    @Transactional
-    public void deleteFilm(Long filmId) {
-        log.info("Запрос на удаление фильма с id={}", filmId);
-        filmStorage.removeAllFilmLikes(filmId);
-        filmStorage.removeAllFilmGenres(filmId);
-        // чистим отзывы через сервис отзывов
-        reviewService.deleteReviewRatingsByFilm(filmId);
-        reviewService.deleteReviewsByFilm(filmId);
-        directorService.removeDirectorsFromFilm(filmId);
-        filmStorage.deleteFilm(filmId);
     }
 
     //Метод для установки значений для возвращаемого объекта - film
