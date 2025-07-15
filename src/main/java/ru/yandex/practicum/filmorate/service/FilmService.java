@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -22,6 +23,7 @@ public class FilmService {
     private final GenreService genreService;
     private final RatingService ratingService;
     private final DirectorService directorService;
+    private final EventService eventService;
     private final ReviewService reviewService;
 
     public Collection<Film> gettingFilms() {
@@ -79,6 +81,7 @@ public class FilmService {
         userService.gettingAUserById(userId);
         gettingAMovieById(filmId);
         filmStorage.addingLikes(filmId, userId);
+        eventService.addUserSetLikeEvent(userId, filmId);
     }
 
     public Film gettingAMovieById(Long filmId) {
@@ -93,11 +96,12 @@ public class FilmService {
         userService.gettingAUserById(userId);
         gettingAMovieById(filmId);
         filmStorage.removingALike(filmId, userId);
+        eventService.addUserRemoveLikeEvent(userId, filmId);
     }
 
-    public Collection<Film> listOfPopularMovies(int count) {
+    public List<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {
         log.info("Получен запрос на получения - {} популярных фильмов", count);
-        Collection<Film> films = filmStorage.listOfPopularMovies(count);
+        List<Film> films = filmStorage.getPopularFilms(count, genreId, year);
         films.forEach(this::addingFields);
         log.info("Список популярных фильмов - {}", films);
         return films;

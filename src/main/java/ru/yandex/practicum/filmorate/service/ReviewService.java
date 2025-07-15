@@ -16,6 +16,7 @@ public class ReviewService {
     private final ReviewStorage reviewStorage;
     private final FilmService filmService;
     private final UserService userService;
+    private final EventService eventService;
 
     //Добавление нового отзыва
     public Review createReview(Review review) {
@@ -28,7 +29,9 @@ public class ReviewService {
         if (review.getUserId() != null) {
             userService.gettingAUserById(review.getUserId());
         }
-        return reviewStorage.createReview(review);
+        Review createdReview = reviewStorage.createReview(review);
+        eventService.addUserAddReviewEvent(review.getUserId(), createdReview.getReviewId());
+        return createdReview;
     }
 
     //Редактирование уже имеющегося отзыва.
@@ -44,15 +47,18 @@ public class ReviewService {
         if (review.getUserId() != null) {
             userService.gettingAUserById(review.getUserId());
         }
-        return reviewStorage.updateReview(review);
+        Review updatedReview = reviewStorage.updateReview(review);
+        eventService.addUserUpdateReviewEvent(review.getUserId(), updatedReview.getReviewId());
+        return updatedReview;
     }
 
     //Удаление уже имеющегося отзыва.
     public void deleteReview(Long reviewId) {
         log.info("Получен запрос на удаление отзыва c iD - {}", reviewId);
         //проверка на наличие отзыва по id
-        findReviewById(reviewId);
+        Review review = findReviewById(reviewId);
         reviewStorage.deleteReview(reviewId);
+        eventService.addUserRemoveReviewEvent(review.getUserId(), reviewId);
     }
 
     //Получение отзыва по идентификатору.

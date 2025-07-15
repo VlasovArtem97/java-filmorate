@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.service.DataCleanupService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
+import java.util.List;
 
 @Validated
 @RestController
@@ -37,9 +38,10 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> listOfPopularMovies(@Positive @RequestParam(required = false, defaultValue = "10")
-                                                int count) {
-        return filmService.listOfPopularMovies(count);
+    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") Integer count,
+                                      @RequestParam(required = false) Integer genreId,
+                                      @RequestParam(required = false) Integer year) {
+        return filmService.getPopularFilms(count, genreId, year);
     }
 
     @PostMapping
