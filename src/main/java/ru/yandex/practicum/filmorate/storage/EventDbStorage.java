@@ -85,7 +85,7 @@ public class EventDbStorage implements EventStorage {
                 DELETE FROM events
                 WHERE (user_id = ?) OR (event_type = 'FRIEND' AND entity_id = ?);
                 """;
-        int n = jdbcTemplate.update(sql, userId);
+        int n = jdbcTemplate.update(sql, userId, userId);
         log.info("Удалено {} записей ленты событий, связанных с пользователем {}", n, userId);
     }
 
