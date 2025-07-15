@@ -30,7 +30,7 @@ public class UserController {
         return userService.gettingAUserById(userId);
     }
 
-    @PutMapping("/{id}/friends/{friendId}")
+    @PostMapping("/{id}/friends/{friendId}")
     public void addingAFriend(@Positive @PathVariable("id") Long userId, @Positive @PathVariable Long friendId) {
         userService.addingAFriend(userId, friendId);
     }
