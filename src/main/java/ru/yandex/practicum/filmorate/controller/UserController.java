@@ -1,7 +1,5 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import java.util.Collections;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -42,17 +40,9 @@ public class UserController {
         userService.unfriending(userId, friendId);
     }
 
-    /*@GetMapping("/{id}/friends")
-    public Collection<User> friendList(@Positive @PathVariable("id") Long userId) {
-        return userService.friendsList(userId);
-    }*/
     @GetMapping("/{id}/friends")
     public Collection<User> friendList(@Positive @PathVariable("id") Long userId) {
-        try {
-            return userService.friendsList(userId);
-        } catch (NotFoundException e) {
-            return Collections.emptyList();
-        }
+        return userService.friendsList(userId);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
