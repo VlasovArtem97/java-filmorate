@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.RatingMpa;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.FilmStorage;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -21,6 +22,7 @@ public class FilmService {
     private final GenreService genreService;
     private final RatingService ratingService;
     private final DirectorService directorService;
+    private final ReviewService reviewService;
 
     public Collection<Film> gettingFilms() {
         return filmStorage.gettingFilms();
@@ -137,7 +139,18 @@ public class FilmService {
         log.info("В соответствии подстроки - {}, полученный список фильмов: {}", query, films);
         return films;
     }
-
+    /** Удаление фильма и всех связанных с ним данных */
+    @Transactional
+    public void deleteFilm(Long filmId) {
+        log.info("Запрос на удаление фильма с id={}", filmId);
+        filmStorage.removeAllFilmLikes(filmId);
+        filmStorage.removeAllFilmGenres(filmId);
+        // чистим отзывы через сервис отзывов
+        reviewService.deleteReviewRatingsByFilm(filmId);
+        reviewService.deleteReviewsByFilm(filmId);
+        directorService.removeDirectorsFromFilm(filmId);
+        filmStorage.deleteFilm(filmId);
+    }
     //Метод для установки значений для возвращаемого объекта - film
     public void addingFields(Film film) {
         film.setMpa(ratingService.getRatingById(film.getMpaId()));
