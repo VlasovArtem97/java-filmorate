@@ -15,6 +15,7 @@ public class DataCleanupService {
     private final ReviewService reviewService;
     private final GenreService genreService;
     private final DirectorService directorService;
+    private final EventService eventService;
 
     /** Полное удаление фильма и всех связанных данных */
     @Transactional
@@ -30,6 +31,7 @@ public class DataCleanupService {
     /** Полное удаление пользователя и всех связанных данных */
     @Transactional
     public void deleteUserCompletely(Long userId) {
+        eventService.eraseUserReferencedEvents(userId);
         userStorage.removeAllFriendships(userId);
         userStorage.removeAllLikesByUser(userId);
         reviewService.deleteReviewRatingsByUser(userId);
