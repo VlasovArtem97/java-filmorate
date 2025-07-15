@@ -22,6 +22,7 @@ public class FilmService {
     private final GenreService genreService;
     private final RatingService ratingService;
     private final DirectorService directorService;
+    private final EventService eventService;
 
     public Collection<Film> gettingFilms() {
         return filmStorage.gettingFilms();
@@ -78,6 +79,7 @@ public class FilmService {
         userService.gettingAUserById(userId);
         gettingAMovieById(filmId);
         filmStorage.addingLikes(filmId, userId);
+        eventService.addUserSetLikeEvent(userId, filmId);
     }
 
     public Film gettingAMovieById(Long filmId) {
@@ -92,6 +94,7 @@ public class FilmService {
         userService.gettingAUserById(userId);
         gettingAMovieById(filmId);
         filmStorage.removingALike(filmId, userId);
+        eventService.addUserRemoveLikeEvent(userId, filmId);
     }
 
     public List<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {

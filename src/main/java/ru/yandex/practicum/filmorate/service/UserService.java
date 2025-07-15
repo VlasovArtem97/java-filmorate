@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.UserStorage;
 
@@ -14,6 +15,7 @@ import java.util.Collection;
 public class UserService {
 
     private final UserStorage userStorage;
+    private final EventService eventService;
 
     public void addingAFriend(Long userId, Long userFriendId) {
         log.info("Получен запрос на добавление в список друзей от пользователя c id - {} с " +
@@ -21,6 +23,7 @@ public class UserService {
         gettingAUserById(userId);
         gettingAUserById(userFriendId);
         userStorage.addingAFriend(userId, userFriendId);
+        eventService.addUserAddFriendEvent(userId, userFriendId);
     }
 
     public void unfriending(Long userId, Long userFriendId) {
@@ -29,6 +32,7 @@ public class UserService {
         gettingAUserById(userId);
         gettingAUserById(userFriendId);
         userStorage.unfriending(userId, userFriendId);
+        eventService.addUserRemoveFriendEvent(userId, userFriendId);
     }
 
     public Collection<User> friendsList(Long userId) {
@@ -63,5 +67,13 @@ public class UserService {
     public Collection<User> gettingUser() {
         log.info("Получен запрос на получения списка пользователей");
         return userStorage.gettingUser();
+    }
+
+    public Collection<Event> getUserEvents(Long userId) {
+        log.info("Запрос на ленту событий пользователя {}", userId);
+        gettingAUserById(userId);
+        Collection<Event> userEvents = eventService.getUserEvents(userId);
+        log.info("Запрос на ленту событий пользователя {} вернул список длиной {}", userId, userEvents.size());
+        return userEvents;
     }
 }
