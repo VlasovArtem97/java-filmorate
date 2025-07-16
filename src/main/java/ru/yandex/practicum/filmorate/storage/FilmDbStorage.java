@@ -101,47 +101,47 @@ public class FilmDbStorage implements FilmStorage {
             if (genreId == null && year == null) {
                 // без жанра и года
                 sql = """
-                    SELECT f.* FROM films AS f
-                    LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
-                    GROUP BY f.film_id
-                    ORDER BY COUNT(fl.user_id) DESC
-                    LIMIT ?
-                    """;
+                        SELECT f.* FROM films AS f
+                        LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
+                        GROUP BY f.film_id
+                        ORDER BY COUNT(fl.user_id) DESC
+                        LIMIT ?
+                        """;
                 films = jdbcTemplate.query(sql, filmRowMapper, count);
             } else if (genreId != null && year == null) {
                 // с жанром, но без года
                 sql = """
-                    SELECT f.* FROM films AS f
-                    LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
-                    RIGHT JOIN genres_films as gf ON gf.film_id = f.film_id
-                    WHERE gf.genre_id = ?
-                    GROUP BY f.film_id
-                    ORDER BY COUNT(fl.user_id) DESC
-                    LIMIT ?
-                    """;
+                        SELECT f.* FROM films AS f
+                        LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
+                        RIGHT JOIN genres_films as gf ON gf.film_id = f.film_id
+                        WHERE gf.genre_id = ?
+                        GROUP BY f.film_id
+                        ORDER BY COUNT(fl.user_id) DESC
+                        LIMIT ?
+                        """;
                 films = jdbcTemplate.query(sql, filmRowMapper, genreId, count);
             } else if (genreId == null && year != null) {
                 // без жанра, но с годом
                 sql = """
-                    SELECT f.* FROM films AS f
-                    LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
-                    WHERE EXTRACT(YEAR FROM f.release_date) = ?
-                    GROUP BY f.film_id
-                    ORDER BY COUNT(fl.user_id) DESC
-                    LIMIT ?
-                    """;
+                        SELECT f.* FROM films AS f
+                        LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
+                        WHERE EXTRACT(YEAR FROM f.release_date) = ?
+                        GROUP BY f.film_id
+                        ORDER BY COUNT(fl.user_id) DESC
+                        LIMIT ?
+                        """;
                 films = jdbcTemplate.query(sql, filmRowMapper, year, count);
             } else {
                 // с жанром, с годом
                 sql = """
-                    SELECT f.* FROM films AS f
-                    LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
-                    RIGHT JOIN genres_films as gf ON gf.film_id = f.film_id
-                    WHERE gf.genre_id = ? AND EXTRACT(YEAR FROM f.release_date) = ?
-                    GROUP BY f.film_id
-                    ORDER BY COUNT(fl.user_id) DESC
-                    LIMIT ?
-                    """;
+                        SELECT f.* FROM films AS f
+                        LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id
+                        RIGHT JOIN genres_films as gf ON gf.film_id = f.film_id
+                        WHERE gf.genre_id = ? AND EXTRACT(YEAR FROM f.release_date) = ?
+                        GROUP BY f.film_id
+                        ORDER BY COUNT(fl.user_id) DESC
+                        LIMIT ?
+                        """;
                 films = jdbcTemplate.query(sql, filmRowMapper, genreId, year, count);
             }
             log.info("Получен список популярных фильмов. Количество популярных фильмов = {}", films.size());

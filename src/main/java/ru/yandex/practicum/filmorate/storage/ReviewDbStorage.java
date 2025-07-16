@@ -53,9 +53,8 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Review updateReview(Review review) {
-        String query = "UPDATE reviews SET content = ?, is_positive = ?, user_id = ?, film_id = ? WHERE review_id = ?";
-        int update = jdbcTemplate.update(query, review.getContent(), review.getIsPositive(), review.getUserId(),
-                review.getFilmId(), review.getReviewId());
+        String query = "UPDATE reviews SET content = ?, is_positive = ? WHERE review_id = ?";
+        int update = jdbcTemplate.update(query, review.getContent(), review.getIsPositive(), review.getReviewId());
         if (update == 0) {
             log.error("Не удалось обновить данные отзыва - {}", review);
             throw new IllegalStateException("Не удалось обновить данные отзыва");

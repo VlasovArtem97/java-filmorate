@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DataCleanupService {
 
-//    private final FilmStorage filmStorage;
+    //    private final FilmStorage filmStorage;
 //    private final UserStorage userStorage;
     private final ReviewService reviewService;
     private final GenreService genreService;
@@ -19,7 +19,9 @@ public class DataCleanupService {
     private final UserService userService;
     private final FilmService filmService;
 
-    /** Полное удаление фильма и всех связанных данных */
+    /**
+     * Полное удаление фильма и всех связанных данных
+     */
     @Transactional
     public void deleteFilmCompletely(Long filmId) {
 //        filmStorage.removeAllFilmLikes(filmId);
@@ -31,7 +33,9 @@ public class DataCleanupService {
 //        filmStorage.deleteFilm(filmId);
     }
 
-    /** Полное удаление пользователя и всех связанных данных */
+    /**
+     * Полное удаление пользователя и всех связанных данных
+     */
     @Transactional
     public void deleteUserCompletely(Long userId) {
         eventService.eraseUserReferencedEvents(userId);

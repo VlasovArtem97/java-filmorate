@@ -127,7 +127,7 @@ public class DirectorDbStorage implements DirectorStorage {
                 DELETE FROM film_director WHERE director_id = ?
                 """;
         int count = jdbcTemplate.update(query, directorId);
-        if(count > 0) {
+        if (count > 0) {
             log.info("Режиссер с id - {} из таблицы film_director успешно удален", directorId);
         } else {
             log.warn("Режиссер с id - {} в таблице film_director не найден", directorId);

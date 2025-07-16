@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.ReviewStorage;
 
 import java.util.Collection;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -38,14 +39,24 @@ public class ReviewService {
     public Review updateReview(Review review) {
         log.info("Получен запрос на обновление отзыва: {}", review);
         //проверка на наличие отзыва по id
-        findReviewById(review.getReviewId());
+        Review reviewOld = findReviewById(review.getReviewId());
         //проверка на наличие фильма по id
         if (review.getFilmId() != null) {
             filmService.gettingAMovieById(review.getFilmId());
+            if (!Objects.equals(reviewOld.getFilmId(), review.getFilmId())) {
+                log.warn("id - {} фильма указанного в отзыве для обновления не равен id - {} " +
+                                "фильма указанного в отзыве, который пытаются обновить", review.getFilmId(),
+                        reviewOld.getFilmId());
+            }
         }
         //проверка на наличие пользователя по id
         if (review.getUserId() != null) {
             userService.gettingAUserById(review.getUserId());
+            if (!Objects.equals(reviewOld.getUserId(), review.getUserId())) {
+                log.warn("id - {} пользователя указанного в отзыве для обновления не равен id - {} " +
+                                "пользователя указанного в отзыве, который пытаются обновить", review.getUserId(),
+                        reviewOld.getUserId());
+            }
         }
         Review updatedReview = reviewStorage.updateReview(review);
         eventService.addUserUpdateReviewEvent(review.getUserId(), updatedReview.getReviewId());
@@ -122,22 +133,30 @@ public class ReviewService {
         reviewStorage.deleteReviewDislike(reviewId, userId);
     }
 
-    /** Удалить все оценки к отзывам пользователя */
+    /**
+     * Удалить все оценки к отзывам пользователя
+     */
     public void deleteReviewRatingsByUser(Long userId) {
         reviewStorage.deleteReviewRatingsByUser(userId);
     }
 
-    /** Удалить все отзывы пользователя */
+    /**
+     * Удалить все отзывы пользователя
+     */
     public void deleteReviewsByUser(Long userId) {
         reviewStorage.deleteReviewsByUser(userId);
     }
 
-    /** Удалить все оценки к отзывам фильма */
+    /**
+     * Удалить все оценки к отзывам фильма
+     */
     public void deleteReviewRatingsByFilm(Long filmId) {
         reviewStorage.deleteReviewRatingsByFilm(filmId);
     }
 
-    /** Удалить все отзывы о фильме */
+    /**
+     * Удалить все отзывы о фильме
+     */
     public void deleteReviewsByFilm(Long filmId) {
         reviewStorage.deleteReviewsByFilm(filmId);
     }
