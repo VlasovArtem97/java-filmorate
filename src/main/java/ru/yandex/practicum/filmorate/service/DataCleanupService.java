@@ -10,32 +10,36 @@ import ru.yandex.practicum.filmorate.storage.interfacedatabase.UserStorage;
 @RequiredArgsConstructor
 public class DataCleanupService {
 
-    private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+//    private final FilmStorage filmStorage;
+//    private final UserStorage userStorage;
     private final ReviewService reviewService;
     private final GenreService genreService;
     private final DirectorService directorService;
     private final EventService eventService;
+    private final UserService userService;
+    private final FilmService filmService;
 
     /** Полное удаление фильма и всех связанных данных */
     @Transactional
     public void deleteFilmCompletely(Long filmId) {
-        filmStorage.removeAllFilmLikes(filmId);
-        filmStorage.removeAllFilmGenres(filmId);
+//        filmStorage.removeAllFilmLikes(filmId);
+//        filmStorage.removeAllFilmGenres(filmId);
+        filmService.deleteFilm(filmId);
         reviewService.deleteReviewRatingsByFilm(filmId);
         reviewService.deleteReviewsByFilm(filmId);
         directorService.removeDirectorsFromFilm(filmId);
-        filmStorage.deleteFilm(filmId);
+//        filmStorage.deleteFilm(filmId);
     }
 
     /** Полное удаление пользователя и всех связанных данных */
     @Transactional
     public void deleteUserCompletely(Long userId) {
         eventService.eraseUserReferencedEvents(userId);
-        userStorage.removeAllFriendships(userId);
-        userStorage.removeAllLikesByUser(userId);
+        //userStorage.removeAllFriendships(userId);
+        userService.deleteUser(userId);
+        //userStorage.removeAllLikesByUser(userId);
         reviewService.deleteReviewRatingsByUser(userId);
         reviewService.deleteReviewsByUser(userId);
-        userStorage.deleteUser(userId);
+        //userStorage.deleteUser(userId);
     }
 }

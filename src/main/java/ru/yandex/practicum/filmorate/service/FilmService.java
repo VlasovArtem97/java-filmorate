@@ -148,4 +148,12 @@ public class FilmService {
         film.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(film.getId())));
         film.setDirectors(directorService.getDirectorsOfFilm(film.getId()));
     }
+
+    public void deleteFilm(Long filmId) {
+        log.info("Запрос на удаление фильма с id={}", filmId);
+        filmStorage.removeAllFilmLikes(filmId);
+        filmStorage.removeAllFilmGenres(filmId);
+        filmStorage.deleteFilm(filmId);
+    }
+
 }
