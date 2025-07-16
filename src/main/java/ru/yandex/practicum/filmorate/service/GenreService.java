@@ -33,4 +33,9 @@ public class GenreService {
     public Collection<Genre> getAListOfGenres(Long filmId) {
         return genreDbStorage.getAListOfGenres(filmId);
     }
+
+    //метод для удаления жанров в соответствии id фильма
+    public void removeFromGenresByFilmsId(Long filmId) {
+        genreDbStorage.removeFromGenresByFilmsId(filmId);
+    }
 }

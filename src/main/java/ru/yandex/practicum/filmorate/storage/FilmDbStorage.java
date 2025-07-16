@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -170,10 +171,8 @@ public class FilmDbStorage implements FilmStorage {
         try {
             jdbcTemplate.update(query, userId, filmId);
             log.info("Лайк успешно поставлен фильму с id - {} пользователем с id - {}", filmId, userId);
-        } catch (EmptyResultDataAccessException e) {
-            log.error("Не удалось поставить лайк фильму с id - {} пользователем с id - {}", filmId, userId);
-            throw new IllegalStateException("Не удалось поставить лайк фильму с id " +
-                    filmId + "пользователем с id - " + userId + " " + e.getMessage());
+        } catch (DuplicateKeyException e) {
+            log.warn("Не удалось поставить лайк фильму с id - {} пользователем с id - {}", filmId, userId);
         }
     }
 
@@ -264,11 +263,12 @@ public class FilmDbStorage implements FilmStorage {
         } else {
             sql = """
                     SELECT f.*
-                    FROM films f INNER JOIN film_director fd ON f.film_id = fd.film_id
-                    INNER JOIN film_likes fl ON fl.film_id = f.film_id
+                    FROM films f 
+                    JOIN film_director fd ON f.film_id = fd.film_id
+                    LEFT JOIN film_likes fl ON fl.film_id = f.film_id
                     WHERE fd.director_id = ?
                     GROUP BY f.film_id
-                    ORDER BY count(fl.*) DESC;
+                    ORDER BY COUNT(fl.user_id) DESC;
                     """;
         }
         List<Film> films = jdbcTemplate.query(sql, filmRowMapper, id);

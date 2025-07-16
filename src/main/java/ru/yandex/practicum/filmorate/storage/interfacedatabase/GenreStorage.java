@@ -16,4 +16,6 @@ public interface GenreStorage {
     void removeFromGenresFilms(Long id, Set<Genre> longSet);
 
     Collection<Genre> getAListOfGenres(Long filmId);
+
+    void removeFromGenresByFilmsId(Long filmId);
 }

@@ -25,16 +25,20 @@ public class FilmService {
     private final EventService eventService;
 
     public Collection<Film> gettingFilms() {
-        return filmStorage.gettingFilms();
+        Collection<Film> films = filmStorage.gettingFilms();
+        films.forEach(this::addingFields);
+        return films;
     }
 
     public Film updateFilm(Film film) {
         log.info("Получен запрос на обновления фильма - {}", film);
         gettingAMovieById(film.getId());
-        if (film.getGenres() != null) {
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             film.getGenres().forEach(genre -> genreService.getGenreById(genre.getId()));
-            genreService.removeFromGenresFilms(film.getId(), film.getGenres());
+            genreService.removeFromGenresByFilmsId(film.getId());
             genreService.addGenresFilm(film.getId(), film.getGenres());
+        } else {
+            genreService.removeFromGenresByFilmsId(film.getId());
         }
         Optional<RatingMpa> ratingMpa = Optional.ofNullable(film.getMpa());
         if (ratingMpa.isPresent()) {

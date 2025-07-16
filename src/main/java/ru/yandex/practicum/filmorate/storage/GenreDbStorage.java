@@ -57,6 +57,7 @@ public class GenreDbStorage implements GenreStorage {
         log.info("film_id и genre_id успешно добавлены");
     }
 
+    //метод под вопросом
     @Override
     public void removeFromGenresFilms(Long id, Set<Genre> genre) {
         log.info("Начинаем удалять жанры из таблицы genres_films в соответствии с film_id и genre_id");
@@ -66,6 +67,19 @@ public class GenreDbStorage implements GenreStorage {
                 .collect(Collectors.toList());
         jdbcTemplate.batchUpdate(query, objects);
         log.info("film_id и genre_id успешно удалены");
+    }
+
+    //Метод для удаления жанров из таблицы genres_films по filmId
+    @Override
+    public void removeFromGenresByFilmsId(Long filmId) {
+        log.info("Начинаем удалять жанры из таблицы genres_films в соответствии с id фильма: {}", filmId);
+        String query = "DELETE FROM genres_films WHERE film_id = ?";
+        int count = jdbcTemplate.update(query, filmId);
+        if (count == 0) {
+            log.error("Не удалось удалить жанры из таблицы genres_films в соответствии с id фильма: {}", filmId);
+        } else {
+            log.info("Жанры в соответствии с id фильма - {} успешно удалены", filmId);
+        }
     }
 
     @Override

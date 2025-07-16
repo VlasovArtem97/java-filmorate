@@ -68,6 +68,8 @@ public class DirectorDbStorage implements DirectorStorage {
 
     @Override
     public void deleteDirector(Long id) {
+        //удаляем режиссера из таблицы film_director
+        removeDirectorFromFilmDirector(id);
         getDirectorByID(id);
         String sql = "DELETE FROM directors WHERE id = ?";
         jdbcTemplate.update(sql, id);
@@ -117,6 +119,18 @@ public class DirectorDbStorage implements DirectorStorage {
             return directors;
         } catch (DataAccessException e) {
             throw new IllegalStateException("Отказ операции получения списка режиссеров", e);
+        }
+    }
+
+    private void removeDirectorFromFilmDirector(Long directorId) {
+        String query = """
+                DELETE FROM film_director WHERE director_id = ?
+                """;
+        int count = jdbcTemplate.update(query, directorId);
+        if(count > 0) {
+            log.info("Режиссер с id - {} из таблицы film_director успешно удален", directorId);
+        } else {
+            log.warn("Режиссер с id - {} в таблице film_director не найден", directorId);
         }
     }
 }
