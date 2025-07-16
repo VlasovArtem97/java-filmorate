@@ -59,7 +59,7 @@ public class ReviewService {
             }
         }
         Review updatedReview = reviewStorage.updateReview(review);
-        eventService.addUserUpdateReviewEvent(review.getUserId(), updatedReview.getReviewId());
+        eventService.addUserUpdateReviewEvent(reviewOld.getUserId(), updatedReview.getReviewId());
         return updatedReview;
     }
 

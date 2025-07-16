@@ -26,10 +26,6 @@ public class GenreService {
         genreDbStorage.addGenresFilm(filmId, genreSet);
     }
 
-    public void removeFromGenresFilms(Long filmId, Set<Genre> longSet) {
-        genreDbStorage.removeFromGenresFilms(filmId, longSet);
-    }
-
     public Collection<Genre> getAListOfGenres(Long filmId) {
         return genreDbStorage.getAListOfGenres(filmId);
     }

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.ReviewStorage;
-import ru.yandex.practicum.filmorate.storage.mappers.ReviewMapper;
+import ru.yandex.practicum.filmorate.storage.mappers.ReviewRowMapper;
 
 import java.sql.PreparedStatement;
 import java.util.Collection;
@@ -25,7 +25,7 @@ import java.util.Optional;
 public class ReviewDbStorage implements ReviewStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private final ReviewMapper reviewMapper;
+    private final ReviewRowMapper reviewMapper;
 
     @Override
     public Review createReview(Review review) {

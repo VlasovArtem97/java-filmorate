@@ -3,8 +3,6 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-// import ru.yandex.practicum.filmorate.storage.interfacedatabase.FilmStorage;
-// import ru.yandex.practicum.filmorate.storage.interfacedatabase.UserStorage;
 
 @Service
 @RequiredArgsConstructor
@@ -24,13 +22,10 @@ public class DataCleanupService {
      */
     @Transactional
     public void deleteFilmCompletely(Long filmId) {
-//        filmStorage.removeAllFilmLikes(filmId);
-//        filmStorage.removeAllFilmGenres(filmId);
         filmService.deleteFilm(filmId);
         reviewService.deleteReviewRatingsByFilm(filmId);
         reviewService.deleteReviewsByFilm(filmId);
         directorService.removeDirectorsFromFilm(filmId);
-//        filmStorage.deleteFilm(filmId);
     }
 
     /**
@@ -39,11 +34,8 @@ public class DataCleanupService {
     @Transactional
     public void deleteUserCompletely(Long userId) {
         eventService.eraseUserReferencedEvents(userId);
-        //userStorage.removeAllFriendships(userId);
         userService.deleteUser(userId);
-        //userStorage.removeAllLikesByUser(userId);
         reviewService.deleteReviewRatingsByUser(userId);
         reviewService.deleteReviewsByUser(userId);
-        //userStorage.deleteUser(userId);
     }
 }

@@ -13,8 +13,6 @@ public interface GenreStorage {
 
     void addGenresFilm(Long id, Set<Genre> genreSet);
 
-    void removeFromGenresFilms(Long id, Set<Genre> longSet);
-
     Collection<Genre> getAListOfGenres(Long filmId);
 
     void removeFromGenresByFilmsId(Long filmId);

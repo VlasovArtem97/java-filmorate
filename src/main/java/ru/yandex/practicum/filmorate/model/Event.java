@@ -25,7 +25,7 @@ public class Event {
 
     @Null(groups = Marker.OnCreate.class)
     @NotNull(groups = Marker.OnUpdate.class)
-    private Long id;
+    private Long eventId;
 
     @NotNull(groups = Marker.OnCreate.class)
     private Long timestamp;

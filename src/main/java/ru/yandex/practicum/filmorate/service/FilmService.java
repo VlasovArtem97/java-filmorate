@@ -131,6 +131,7 @@ public class FilmService {
 
     public Collection<Film> getFilmsByDirectorId(Long id, String sortBy) {
         log.info("Поступил GET-запрос на получение списка фильмов sortBy={}, directorId={}", sortBy, id);
+        directorService.getDirectorByID(id);
         var films = filmStorage.getFilmsByDirectorId(id, sortBy);
         films.forEach(this::addingFields);
         return films;

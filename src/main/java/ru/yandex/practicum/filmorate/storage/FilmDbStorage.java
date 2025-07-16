@@ -29,7 +29,6 @@ import java.util.List;
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmRowMapper filmRowMapper;
-    private final DirectorStorage directorStorage;
 
     @Override
     public Film findFilmById(Long filmId) {
@@ -251,7 +250,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getFilmsByDirectorId(Long id, String sortBy) {
-        directorStorage.getDirectorByID(id);
         String sql;
         if ("year".equalsIgnoreCase(sortBy)) {
             sql = """

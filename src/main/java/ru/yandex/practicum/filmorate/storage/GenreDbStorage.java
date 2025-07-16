@@ -57,18 +57,6 @@ public class GenreDbStorage implements GenreStorage {
         log.info("film_id и genre_id успешно добавлены");
     }
 
-    //метод под вопросом
-    @Override
-    public void removeFromGenresFilms(Long id, Set<Genre> genre) {
-        log.info("Начинаем удалять жанры из таблицы genres_films в соответствии с film_id и genre_id");
-        String query = "DELETE FROM genres_films WHERE film_id = ? AND genre_id = ?";
-        List<Object[]> objects = genre.stream()
-                .map(genres -> new Object[]{id, genres.getId()})
-                .collect(Collectors.toList());
-        jdbcTemplate.batchUpdate(query, objects);
-        log.info("film_id и genre_id успешно удалены");
-    }
-
     //Метод для удаления жанров из таблицы genres_films по filmId
     @Override
     public void removeFromGenresByFilmsId(Long filmId) {
