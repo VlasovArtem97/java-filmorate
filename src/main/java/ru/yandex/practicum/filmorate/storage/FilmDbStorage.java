@@ -11,7 +11,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.interfacedatabase.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.mappers.FilmRowMapper;
 
@@ -261,7 +260,7 @@ public class FilmDbStorage implements FilmStorage {
         } else {
             sql = """
                     SELECT f.*
-                    FROM films f 
+                    FROM films f
                     JOIN film_director fd ON f.film_id = fd.film_id
                     LEFT JOIN film_likes fl ON fl.film_id = f.film_id
                     WHERE fd.director_id = ?
