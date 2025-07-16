@@ -65,6 +65,8 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public void deleteReview(Long reviewId) {
+        //Удаляем данные из таблицы reviews_ratings_films_by_users (связь многие ко многим).
+        deleteRatingToFilmByUser(reviewId);
         String query = "DELETE FROM reviews WHERE review_id = ?";
         int count = jdbcTemplate.update(query, reviewId);
         if (count == 0) {
@@ -72,8 +74,6 @@ public class ReviewDbStorage implements ReviewStorage {
             throw new IllegalStateException("Не удалось удалить отзыв");
         } else {
             log.info("Отзыв с ID - {} успешно удален", reviewId);
-            //Удаляем данные из таблицы reviews_ratings_films_by_users (связь многие ко многим).
-            deleteRatingToFilmByUser(reviewId);
         }
     }
 
@@ -92,7 +92,11 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Collection<Review> getReviewsByFilmId(Long filmId, int count) {
-        String query = "SELECT * FROM reviews WHERE film_id = ? LIMIT ?";
+        String query = """
+                SELECT * FROM reviews
+                WHERE film_id = ?
+                ORDER BY useful DESC
+                LIMIT ?""";
         List<Review> reviews = jdbcTemplate.query(query, reviewMapper, filmId, count);
         log.debug("Список из {} отзывов к фильму с id - {} получен: {}", count, filmId, reviews);
         return reviews;
@@ -101,7 +105,11 @@ public class ReviewDbStorage implements ReviewStorage {
     @Override
     public Collection<Review> getCountReviews(int count) {
         log.info("Получен запрос на получение {} отзывов", count);
-        String query = "SELECT * FROM reviews LIMIT ?";
+        String query = """
+                SELECT * FROM reviews
+                ORDER BY useful DESC
+                LIMIT ?
+                """;
         List<Review> reviews = jdbcTemplate.query(query, reviewMapper, count);
         log.debug("Список из {} отзывов получен: {}", count, reviews);
         return reviews;
