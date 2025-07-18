@@ -35,7 +35,7 @@ public class FilmDbStorage implements FilmStorage {
         String query = "SELECT * FROM films WHERE film_id = ?";
         try {
             Film film = jdbcTemplate.queryForObject(query, filmRowMapper, filmId);
-            log.info("Фильм с id - {} успешно найден", filmId);
+            log.debug("Фильм с id - {} успешно найден", filmId);
             return film;
         } catch (EmptyResultDataAccessException e) {
             log.error("Фильм с указанным id - {} не найден", filmId);
@@ -88,7 +88,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         Long id = key.longValue();
         film.setId(id);
-        log.info("Фильм успешно добавлен");
+        log.debug("Фильм успешно добавлен: {}", film);
         return film;
     }
 
@@ -142,7 +142,7 @@ public class FilmDbStorage implements FilmStorage {
                         """;
                 films = jdbcTemplate.query(sql, filmRowMapper, genreId, year, count);
             }
-            log.info("Получен список популярных фильмов. Количество популярных фильмов = {}", films.size());
+            log.debug("Получен список популярных фильмов. Количество популярных фильмов = {}", films.size());
             return films;
         } catch (DataAccessException e) {
             String msg = "Не удалось получить список популярных фильмов";
@@ -159,7 +159,7 @@ public class FilmDbStorage implements FilmStorage {
             log.error("Не удалось удалить лайк с фильма по id - {} пользователем с id - {}", filmId, userId);
             throw new IllegalStateException("Не удалось удалить лайк с фильма");
         } else {
-            log.info("Лайк с фильма по id - {} успешно удален пользователем с id - {}", filmId, userId);
+            log.debug("Лайк с фильма по id - {} успешно удален пользователем с id - {}", filmId, userId);
         }
     }
 
@@ -168,7 +168,7 @@ public class FilmDbStorage implements FilmStorage {
         String query = "INSERT INTO film_likes (user_id, film_id) VALUES (?, ?)";
         try {
             jdbcTemplate.update(query, userId, filmId);
-            log.info("Лайк успешно поставлен фильму с id - {} пользователем с id - {}", filmId, userId);
+            log.debug("Лайк успешно поставлен фильму с id - {} пользователем с id - {}", filmId, userId);
         } catch (DuplicateKeyException e) {
             log.warn("Не удалось поставить лайк фильму с id - {} пользователем с id - {}", filmId, userId);
         }
@@ -204,7 +204,7 @@ public class FilmDbStorage implements FilmStorage {
         // число близких пользователей и применить более серьезную методику
         var sameUserIdList = jdbcTemplate.queryForList(query1, Long.class, userId, userId);
         if (sameUserIdList.isEmpty()) {
-            log.info("Для пользователя {} получен пустой список рекомендованных фильмов", userId);
+            log.debug("Для пользователя {} получен пустой список рекомендованных фильмов", userId);
             return List.of();
         }
 
@@ -220,7 +220,7 @@ public class FilmDbStorage implements FilmStorage {
                 """;
         long sameUserId = sameUserIdList.getFirst();
         List<Film> films = jdbcTemplate.query(query2, filmRowMapper, sameUserId, userId);
-        log.info("Для пользователя {} получен список из {} рекомендованных фильмов", userId, films.size());
+        log.debug("Для пользователя {} получен список из {} рекомендованных фильмов", userId, films.size());
         return films;
     }
 
@@ -238,7 +238,7 @@ public class FilmDbStorage implements FilmStorage {
                 """;
         try {
             List<Film> films = jdbcTemplate.query(query, filmRowMapper, userId, friendId);
-            log.info("Получен список из общих фильмов длиной {}", films.size());
+            log.debug("Получен список из общих фильмов длиной {}", films.size());
             return films;
         } catch (DataAccessException e) {
             String msg = "Не удалось получить список общих фильмов";
@@ -269,7 +269,7 @@ public class FilmDbStorage implements FilmStorage {
                     """;
         }
         List<Film> films = jdbcTemplate.query(sql, filmRowMapper, id);
-        log.info("Получен список фильмов длиной {} режиссера {}", films.size(), id);
+        log.debug("Получен список фильмов длиной {} режиссера {}", films.size(), id);
         return films;
     }
 

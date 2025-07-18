@@ -2,8 +2,11 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -22,6 +25,7 @@ public class GenreDbStorage implements GenreStorage {
 
     private final JdbcTemplate jdbcTemplate;
     private final GenreRowMapper genreRowMapper;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
     public Collection<Genre> getAllGenres() {
@@ -36,7 +40,7 @@ public class GenreDbStorage implements GenreStorage {
         String query = "SELECT * FROM genres WHERE genre_id = ?";
         try {
             Genre genre = jdbcTemplate.queryForObject(query, genreRowMapper, id);
-            log.info("Жанр с id - {} успешно найден", id);
+            log.debug("Жанр с id - {} успешно найден: {}", id, genre);
             return genre;
         } catch (EmptyResultDataAccessException e) {
             log.error("Фильм с указанным id - {} не найден", id);
@@ -54,7 +58,7 @@ public class GenreDbStorage implements GenreStorage {
 
         // Выполнение пакетной вставки
         jdbcTemplate.batchUpdate(query, objects);
-        log.info("film_id и genre_id успешно добавлены");
+        log.debug("film_id и genre_id успешно добавлены");
     }
 
     //Метод для удаления жанров из таблицы genres_films по filmId
@@ -66,7 +70,7 @@ public class GenreDbStorage implements GenreStorage {
         if (count == 0) {
             log.error("Не удалось удалить жанры из таблицы genres_films в соответствии с id фильма: {}", filmId);
         } else {
-            log.info("Жанры в соответствии с id фильма - {} успешно удалены", filmId);
+            log.debug("Жанры в соответствии с id фильма - {} успешно удалены", filmId);
         }
     }
 
@@ -77,7 +81,25 @@ public class GenreDbStorage implements GenreStorage {
                 "JOIN genres_films AS gf ON g.genre_id = gf.genre_id " +
                 "WHERE gf.film_id = ?";
         List<Genre> genre = jdbcTemplate.query(query, genreRowMapper, filmId);
-        log.info("Получен список жанров фильма с id - {}: {}", filmId, genre);
+        log.debug("Получен список жанров фильма с id - {}: {}", filmId, genre);
         return genre;
+    }
+
+    @Override
+    public List<Genre> getGenreByIds(Set<Genre> genres) {
+        log.info("Начинаем поиск по предоставленному списку id жанров");
+        List<Long> genreId = genres.stream()
+                .map(Genre::getId)
+                .toList();
+        String query = "SELECT * FROM genres WHERE genre_id IN (:genre_id)";
+        try {
+            MapSqlParameterSource sqlParameterSource = new MapSqlParameterSource("genre_id", genreId);
+            List<Genre> genreList = namedParameterJdbcTemplate.query(query, sqlParameterSource, genreRowMapper);
+            log.debug("Список полученных жанров: {}", genreList);
+            return genreList;
+        } catch (DataAccessException e) {
+            log.error("Не удалось получить список жанров из таблицы genres: {}", e.getMessage());
+            throw new IllegalStateException("Не удалось получить список жанров из таблицы genres " + e.getMessage());
+        }
     }
 }

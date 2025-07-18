@@ -41,7 +41,7 @@ public class EventDbStorage implements EventStorage {
                 """;
         jdbcTemplate.update(sql, new Timestamp(event.getTimestamp()), event.getUserId(),
                 event.getEventType().name(), event.getOperation().name(), event.getEntityId());
-        log.info("Зафиксировано действие пользователя {}", event);
+        log.debug("Зафиксировано действие пользователя {}", event);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class EventDbStorage implements EventStorage {
                 WHERE user_id = ?;
                 """;
         int n = jdbcTemplate.update(sql, userId);
-        log.info("Удалено {} записей ленты событий, связанных с пользователем {}", n, userId);
+        log.debug("Удалено {} записей ленты событий, связанных с пользователем {}", n, userId);
     }
 
     @Override
@@ -96,6 +96,6 @@ public class EventDbStorage implements EventStorage {
                 WHERE (event_type = 'LIKE' AND entity_id = ?);
                 """;
         int n = jdbcTemplate.update(sql, filmId);
-        log.info("Удалено {} записей ленты событий, связанных с фильмом {}", n, filmId);
+        log.debug("Удалено {} записей ленты событий, связанных с фильмом {}", n, filmId);
     }
 }

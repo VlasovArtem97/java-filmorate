@@ -7,17 +7,23 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.mappers.DirectorRowMapper;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -38,7 +44,7 @@ public class DirectorDbStorage implements DirectorStorage {
         try {
             return jdbcTemplate.queryForObject("SELECT * FROM directors WHERE id = ?", directorRowMapper, id);
         } catch (EmptyResultDataAccessException e) {
-            log.info("Режиссер с id = {} не найден", id);
+            log.debug("Режиссер с id = {} не найден", id);
             throw new NotFoundException("Режиссер с id = " + id + " не найден");
         }
     }
@@ -54,15 +60,16 @@ public class DirectorDbStorage implements DirectorStorage {
 
     @Override
     public Director createDirector(Director director) {
-        Map<String, Object> values = new HashMap<>();
-        values.put("name", director.getName());
+        String sql = "INSERT INTO directors (name) VALUES (?)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("directors")
-                .usingGeneratedKeyColumns("id");
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, director.getName());
+            return ps;
+        }, keyHolder);
 
-        director.setId((long) simpleJdbcInsert.executeAndReturnKey(values).intValue());
-        log.info("Добавлен режиссер {}", director);
+        director.setId(keyHolder.getKey().longValue());
         return director;
     }
 
@@ -73,7 +80,7 @@ public class DirectorDbStorage implements DirectorStorage {
         getDirectorByID(id);
         String sql = "DELETE FROM directors WHERE id = ?";
         jdbcTemplate.update(sql, id);
-        log.info("Режиссер с id={} удалён", id);
+        log.debug("Режиссер с id={} удалён", id);
     }
 
     @Override
@@ -98,7 +105,7 @@ public class DirectorDbStorage implements DirectorStorage {
         final String sql = "DELETE FROM film_director WHERE film_id = ?;";
         try {
             int n = jdbcTemplate.update(sql, filmId);
-            log.info("Удалено {} записей режиссеров фильма {}", n, filmId);
+            log.debug("Удалено {} записей режиссеров фильма {}", n, filmId);
         } catch (DataAccessException e) {
             final String msg = "Отказ операции удаления режиссеров по фильму";
             log.error(msg, e);
@@ -115,7 +122,7 @@ public class DirectorDbStorage implements DirectorStorage {
                 """;
         try {
             List<Director> directors = jdbcTemplate.query(sql, new DirectorRowMapper(), filmId);
-            log.info("Получен список из {} режиссеров фильма {}", directors.size(), filmId);
+            log.debug("Получен список из {} режиссеров фильма {}", directors.size(), filmId);
             return directors;
         } catch (DataAccessException e) {
             throw new IllegalStateException("Отказ операции получения списка режиссеров", e);
@@ -128,9 +135,30 @@ public class DirectorDbStorage implements DirectorStorage {
                 """;
         int count = jdbcTemplate.update(query, directorId);
         if (count > 0) {
-            log.info("Режиссер с id - {} из таблицы film_director успешно удален", directorId);
+            log.debug("Режиссер с id - {} из таблицы film_director успешно удален", directorId);
         } else {
             log.warn("Режиссер с id - {} в таблице film_director не найден", directorId);
+        }
+    }
+
+    @Override
+    public List<Director> getDirectorByIds(List<Director> directors) {
+        log.info("Начинаем поиск по предоставленному списку id режиссеров");
+        List<Long> director = directors.stream()
+                .map(Director::getId)
+                .toList();
+        String value = director.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(", "));
+        String query = "SELECT * FROM directors WHERE id IN (" + value + ")";
+        try {
+            List<Director> genreList = jdbcTemplate.query(query, directorRowMapper, director.toArray());
+            log.debug("Список полученных режиссеров: {}", genreList);
+            return genreList;
+        } catch (DataAccessException e) {
+            log.error("Не удалось получить список режиссеров из таблицы directors: {}", e.getMessage());
+            throw new IllegalStateException("Не удалось получить список режиссеров из таблицы directors "
+                    + e.getMessage());
         }
     }
 }

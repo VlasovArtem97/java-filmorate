@@ -34,7 +34,7 @@ public class FilmService {
         log.info("Получен запрос на обновления фильма - {}", film);
         gettingAMovieById(film.getId());
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            film.getGenres().forEach(genre -> genreService.getGenreById(genre.getId()));
+            genreService.getGenreByIds(film.getGenres());
             genreService.removeFromGenresByFilmsId(film.getId());
             genreService.addGenresFilm(film.getId(), film.getGenres());
         } else {
@@ -45,27 +45,27 @@ public class FilmService {
             ratingService.getRatingById(film.getMpa().getId());
         }
         if (film.getDirectors() != null) {
-            film.getDirectors().forEach(director -> directorService.getDirectorByID(director.getId()));
+            directorService.getDirectorByIds(film.getDirectors());
             directorService.removeDirectorsFromFilm(film.getId());
             directorService.addDirectorsToFilm(film.getId(), film.getDirectors());
         }
         Film filmUpdate = filmStorage.updateFilm(film);
         addingFields(filmUpdate);
-        log.info("Обновленный фильм - {}", filmUpdate);
+        log.debug("Обновленный фильм - {}", filmUpdate);
         return filmUpdate;
     }
 
     public Film addFilm(Film film) {
         log.info("Получен запрос на добавление фильма - {}", film);
-        if (film.getGenres() != null) {
-            film.getGenres().forEach(genre -> genreService.getGenreById(genre.getId()));
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            genreService.getGenreByIds(film.getGenres());
         }
         Optional<RatingMpa> ratingMpa = Optional.ofNullable(film.getMpa());
         if (ratingMpa.isPresent()) {
             film.setMpa(ratingService.getRatingById(film.getMpa().getId()));
         }
         if (film.getDirectors() != null) {
-            film.getDirectors().forEach(director -> directorService.getDirectorByID(director.getId()));
+            directorService.getDirectorByIds(film.getDirectors());
         }
         Film newFilm = filmStorage.addFilm(film);
         directorService.addDirectorsToFilm(newFilm.getId(), film.getDirectors());
@@ -73,7 +73,7 @@ public class FilmService {
         newFilm.setMpa(ratingService.getRatingById(newFilm.getMpa().getId()));
         newFilm.setGenres(new LinkedHashSet<>(genreService.getAListOfGenres(newFilm.getId())));
         newFilm.setDirectors(directorService.getDirectorsOfFilm(newFilm.getId()));
-        log.info("Добавленный фильм - {}", newFilm);
+        log.debug("Добавленный фильм - {}", newFilm);
         return newFilm;
     }
 
@@ -89,7 +89,7 @@ public class FilmService {
     public Film gettingAMovieById(Long filmId) {
         Film film1 = filmStorage.findFilmById(filmId);
         addingFields(film1);
-        log.info("Полученный фильм - {}", film1);
+        log.debug("Полученный фильм - {}", film1);
         return film1;
     }
 
@@ -105,7 +105,7 @@ public class FilmService {
         log.info("Получен запрос на получения - {} популярных фильмов", count);
         List<Film> films = filmStorage.getPopularFilms(count, genreId, year);
         films.forEach(this::addingFields);
-        log.info("Список популярных фильмов - {}", films);
+        log.debug("Список популярных фильмов - {}", films);
         return films;
     }
 
@@ -114,7 +114,7 @@ public class FilmService {
         userService.gettingAUserById(userId);
         var films = filmStorage.getRecommendedMovies(userId);
         films.forEach(this::addingFields);
-        log.info("Получен список из {} рекомендаций для пользователя {}", films.size(), userId);
+        log.debug("Получен список из {} рекомендаций для пользователя {}", films.size(), userId);
         return films;
     }
 
@@ -125,7 +125,7 @@ public class FilmService {
         userService.gettingAUserById(friendId);
         Collection<Film> commonFilms = filmStorage.listOfCommonFilms(userId, friendId);
         commonFilms.forEach(this::addingFields);
-        log.info("Возвращён список фильмов длиной {}", commonFilms.size());
+        log.debug("Возвращён список фильмов длиной {}", commonFilms.size());
         return commonFilms;
     }
 
@@ -143,7 +143,7 @@ public class FilmService {
                 query, by);
         Collection<Film> films = filmStorage.getFilmsByQuery(query, by);
         films.forEach(this::addingFields);
-        log.info("В соответствии подстроки - {}, полученный список фильмов: {}", query, films);
+        log.debug("В соответствии подстроки - {}, полученный список фильмов: {}", query, films);
         return films;
     }
 

@@ -26,7 +26,7 @@ public class RatingDbStorage implements RatingStorage {
         log.info("Получен запрос на получения списка всех рейтингов");
         String query = "SELECT * FROM ratings_mpa";
         List<RatingMpa> ratingMpas = jdbcTemplate.query(query, ratingRowMapper);
-        log.info("Список рейтингов получен: {}", ratingMpas);
+        log.debug("Список рейтингов получен: {}", ratingMpas);
         return ratingMpas;
     }
 
@@ -36,7 +36,7 @@ public class RatingDbStorage implements RatingStorage {
         String query = "SELECT * FROM ratings_mpa WHERE rating_id = ?";
         try {
             RatingMpa ratingMpa = jdbcTemplate.queryForObject(query, ratingRowMapper, id);
-            log.info("Рейтинг с id - {} успешно найден", id);
+            log.debug("Рейтинг с id - {} успешно найден: {}", id, ratingMpa);
             return ratingMpa;
         } catch (EmptyResultDataAccessException e) {
             log.error("Рейтинг с указанным id - {} не найден", id);

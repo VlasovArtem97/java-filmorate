@@ -46,7 +46,7 @@ public class UserDbStorage implements UserStorage {
         }
         Long id = key.longValue();
         user.setId(id);
-        log.info("Пользователь - {} успешно добавлен", user);
+        log.debug("Пользователь - {} успешно добавлен", user);
         return user;
     }
 
@@ -60,7 +60,7 @@ public class UserDbStorage implements UserStorage {
             log.error("Не удалось обновить данные пользователя - {}", user);
             throw new IllegalStateException("Не удалось обновить данные пользователя");
         }
-        log.info("Данные пользователя - {} успешно обновлены", user);
+        log.debug("Данные пользователя - {} успешно обновлены", user);
         return findUserById(user.getId());
     }
 
@@ -68,14 +68,14 @@ public class UserDbStorage implements UserStorage {
     public Collection<User> gettingUser() {
         String query = "SELECT * FROM users";
         List<User> users = jdbcTemplate.query(query, userRowMapper);
-        log.info("Список получен: {}", users);
+        log.debug("Список получен: {}", users);
         return users;
     }
 
     @Override
     public void addingAFriend(Long userId, Long userFriendId) {
         if (userId.equals(userFriendId)) {
-            log.info("Пользователь пытается добавить себя в друзья");
+            log.error("Пользователь пытается добавить себя в друзья");
             throw new IllegalArgumentException("Пользователь не может добавить себя в друзья");
         }
         String query1 = "SELECT COUNT(*) FROM friendship WHERE user_id = ? AND friend_id = ?";
@@ -88,7 +88,7 @@ public class UserDbStorage implements UserStorage {
             String query = "INSERT INTO friendship (user_id, friend_id)" +
                     "VALUES (?, ?)";
             jdbcTemplate.update(query, userId, userFriendId);
-            log.info("Пользователь c id - {} успешно отправил запрос на дружбу пользователю c id - {}", userId, userFriendId);
+            log.debug("Пользователь c id - {} успешно отправил запрос на дружбу пользователю c id - {}", userId, userFriendId);
         }
     }
 
@@ -100,7 +100,7 @@ public class UserDbStorage implements UserStorage {
             log.error("Пользователя с Id - {} нет в списке друзей пользователя - {}", userFriendId, userId);
             return;
         } else {
-            log.info("Пользователь c id - {} удалил из списка друзей пользователя c id - {}", userId, userFriendId);
+            log.debug("Пользователь c id - {} удалил из списка друзей пользователя c id - {}", userId, userFriendId);
         }
     }
 
@@ -109,7 +109,7 @@ public class UserDbStorage implements UserStorage {
         String query = "SELECT u.* FROM users AS u JOIN friendship AS f ON u.user_id = f.friend_id WHERE f.user_id = ?";
         try {
             List<User> users = jdbcTemplate.query(query, userRowMapper, userId);
-            log.info("Список друзей пользователя с id - {} успешно получен: {}", userId, users);
+            log.debug("Список друзей пользователя с id - {} успешно получен: {}", userId, users);
             return users;
         } catch (EmptyResultDataAccessException e) {
             log.error("Не удалось получить список друзей пользователя с id - {}", userId);
@@ -127,7 +127,7 @@ public class UserDbStorage implements UserStorage {
                 ") AS mf ON u.user_id = mf.friend_id";
         try {
             List<User> users = jdbcTemplate.query(query, userRowMapper, userId, otherId);
-            log.info("Список общих друзей успешно получен между пользователя с id - {} и id - {}: {}",
+            log.debug("Список общих друзей успешно получен между пользователя с id - {} и id - {}: {}",
                     userId, otherId, users);
             return users;
         } catch (EmptyResultDataAccessException e) {
@@ -142,7 +142,7 @@ public class UserDbStorage implements UserStorage {
         String query = "SELECT * FROM users WHERE user_id = ?";
         try {
             User user = jdbcTemplate.queryForObject(query, userRowMapper, userId);
-            log.info("Пользователь с id - {} успешно найден", userId);
+            log.debug("Пользователь с id - {} успешно найден", userId);
             return user;
         } catch (EmptyResultDataAccessException e) {
             log.error("Пользователь с id - {} не найден", userId);
@@ -153,11 +153,11 @@ public class UserDbStorage implements UserStorage {
     private void validateUserName(User user) {
         log.info("Начинается валидация имени пользователя - {}", user);
         if (user.getName() == null || user.getName().isBlank()) {
-            log.info("Имя пользователя - {} пустое, используем его логин - {}, " +
+            log.debug("Имя пользователя - {} пустое, используем его логин - {}, " +
                     "как имя", user, user.getLogin());
             user.setName(user.getLogin());
         }
-        log.info("Валидация имени пользователя - {} успешно пройдена", user);
+        log.debug("Валидация имени пользователя - {} успешно пройдена", user);
     }
 
     @Override

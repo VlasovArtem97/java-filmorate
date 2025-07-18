@@ -37,6 +37,10 @@ public class DirectorService {
         directorStorage.addDirectorsToFilm(filmId, directors);
     }
 
+    public List<Director> getDirectorByIds(List<Director> directors) {
+        return directorStorage.getDirectorByIds(directors);
+    }
+
     public void removeDirectorsFromFilm(Long filmId) {
         directorStorage.removeDirectorsFromFilm(filmId);
     }

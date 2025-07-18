@@ -47,7 +47,7 @@ public class ReviewDbStorage implements ReviewStorage {
         }
         Long id = key.longValue();
         review.setReviewId(id);
-        log.info("Отзыв - {} успешно добавлен", review);
+        log.debug("Отзыв - {} успешно добавлен", review);
         return review;
     }
 
@@ -59,7 +59,7 @@ public class ReviewDbStorage implements ReviewStorage {
             log.error("Не удалось обновить данные отзыва - {}", review);
             throw new IllegalStateException("Не удалось обновить данные отзыва");
         }
-        log.info("Данные отзыва - {} успешно обновлены", review);
+        log.debug("Данные отзыва - {} успешно обновлены", review);
         return findReviewById(review.getReviewId());
     }
 
@@ -73,7 +73,7 @@ public class ReviewDbStorage implements ReviewStorage {
             log.error("Не удалось удалить отзыв с id - {}", reviewId);
             throw new IllegalStateException("Не удалось удалить отзыв");
         } else {
-            log.info("Отзыв с ID - {} успешно удален", reviewId);
+            log.debug("Отзыв с ID - {} успешно удален", reviewId);
         }
     }
 
@@ -125,21 +125,21 @@ public class ReviewDbStorage implements ReviewStorage {
             if (evaluationTable.isPresent()) {
                 String evaluation = evaluationTable.get();
                 if ("DISLIKE".equals(evaluation)) {
-                    log.info("Пользователь с id {} уже ставил дизлайк отзыву с id - {}", userId, reviewId);
+                    log.error("Пользователь с id {} уже ставил дизлайк отзыву с id - {}", userId, reviewId);
                     throw new IllegalStateException("Пользователь уже ставил дизлайк этому отзыву");
                 } else if ("LIKE".equals(evaluation)) {
                     //изменяем значение с лайка на дизлайк
                     jdbcTemplate.update(queryUpdate, "DISLIKE", userId, reviewId);
                     //Уменьшаем значение поля useful в таблице reviews
                     addRatingToUtilityRating(reviewId, -2L);
-                    log.info("Оценка изменена с лайка на дизлайк для отзыва c id {} пользователем c id {}", reviewId, userId);
+                    log.debug("Оценка изменена с лайка на дизлайк для отзыва c id {} пользователем c id {}", reviewId, userId);
                 }
             } else {
                 // Если оценки нет добавляем DISLIKE в таблицу reviews_ratings_films_by_users
                 jdbcTemplate.update(queryInsert, userId, reviewId, "DISLIKE");
                 //Уменьшаем значение поля useful в таблице reviews
                 addRatingToUtilityRating(reviewId, -1L);
-                log.info("Дизлайк успешно поставлен отзыву с id - {} пользователем с id - {}", reviewId, userId);
+                log.debug("Дизлайк успешно поставлен отзыву с id - {} пользователем с id - {}", reviewId, userId);
             }
         } catch (DataAccessException e) {
             log.error("Ошибка при установке дизлайка отзыву id {} пользователем id {}: {}", reviewId, userId, e.getMessage());
@@ -159,20 +159,20 @@ public class ReviewDbStorage implements ReviewStorage {
             if (evaluationTable.isPresent()) {
                 String evaluation = evaluationTable.get();
                 if ("LIKE".equals(evaluation)) {
-                    log.info("Пользователь с id {} уже ставил лайк отзыву с id - {}", userId, reviewId);
+                    log.error("Пользователь с id {} уже ставил лайк отзыву с id - {}", userId, reviewId);
                     throw new IllegalStateException("Пользователь уже ставил лайк этому отзыву");
                 } else if ("DISLIKE".equals(evaluation)) {
                     // изменяем значение с дизлайка на лайк
                     jdbcTemplate.update(updateQuery, "LIKE", userId, reviewId);
                     //увеличиваем значение поле useful в таблице reviews
                     addRatingToUtilityRating(reviewId, 2L);
-                    log.info("Оценка изменена с дизлайка на лайк для отзыва c id {} пользователем c id {}", reviewId, userId);
+                    log.debug("Оценка изменена с дизлайка на лайк для отзыва c id {} пользователем c id {}", reviewId, userId);
                 }
             } else {
                 // Если оценки нет, вставляем лайк и увеличиваем поле useful на 1
                 jdbcTemplate.update(insertQuery, userId, reviewId, "LIKE");
                 addRatingToUtilityRating(reviewId, 1L);
-                log.info("Лайк успешно поставлен отзыву с id - {} пользователем с id - {}", reviewId, userId);
+                log.debug("Лайк успешно поставлен отзыву с id - {} пользователем с id - {}", reviewId, userId);
             }
         } catch (DataAccessException e) {
             log.error("Ошибка при установке лайка отзыву id {} пользователем id {}: {}", reviewId, userId, e.getMessage());
@@ -201,7 +201,7 @@ public class ReviewDbStorage implements ReviewStorage {
         }
         //Удаляем лайк в поле useful в Reviews таблице
         addRatingToUtilityRating(reviewId, -1L);
-        log.info("Лайк от пользователя с id {} успешно удалён для отзыва с id {}", userId, reviewId);
+        log.debug("Лайк от пользователя с id {} успешно удалён для отзыва с id {}", userId, reviewId);
     }
 
     @Override
@@ -223,7 +223,7 @@ public class ReviewDbStorage implements ReviewStorage {
         }
         //Удаляем дизлайк в поле useful в Reviews таблице
         addRatingToUtilityRating(reviewId, 1L);
-        log.info("Дизлайк от пользователя с id {} успешно удалён для отзыва с id {}", userId, reviewId);
+        log.debug("Дизлайк от пользователя с id {} успешно удалён для отзыва с id {}", userId, reviewId);
     }
 
     //Метод для удаления данных из таблицы reviews_ratings_films_by_users. Удаляется id пользователя и id отзыва
@@ -235,7 +235,7 @@ public class ReviewDbStorage implements ReviewStorage {
         if (count == 0) {
             log.error("Не удалось удалить данные из таблицы reviews_ratings_films_by_users: отзыв с ID - {}", reviewId);
         } else {
-            log.info("Отзыв с ID - {} и id пользователей, кто поставил лайк успешно удалены из таблицы " +
+            log.debug("Отзыв с ID - {} и id пользователей, кто поставил лайк успешно удалены из таблицы " +
                     "reviews_ratings_films_by_users", reviewId);
         }
     }
@@ -248,7 +248,7 @@ public class ReviewDbStorage implements ReviewStorage {
             log.error("Не удалось обновить поле useful отзыва c id - {}", reviewId);
             throw new IllegalStateException("Не удалось обновить данные пользователя поле useful");
         }
-        log.info("поле useful отзыва с id - {} успешно обновлены", reviewId);
+        log.debug("поле useful отзыва с id - {} успешно обновлены", reviewId);
     }
 
     //метод, который ищет оценку (Like, Dislike или ничего) в базе данных reviews_ratings_films_by_users
@@ -256,7 +256,7 @@ public class ReviewDbStorage implements ReviewStorage {
         String querySelect = "SELECT evaluation FROM reviews_ratings_films_by_users WHERE user_id = ? AND review_id = ?";
         try {
             String evaluation = jdbcTemplate.queryForObject(querySelect, String.class, userId, reviewId);
-            return Optional.ofNullable(evaluation);
+            return Optional.of(evaluation);
         } catch (IncorrectResultSizeDataAccessException e) {
             return Optional.empty();
         }
@@ -282,16 +282,11 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public void deleteReviewRatingsByFilm(Long filmId) {
-        // найдём все отзывы этого фильма
-        List<Long> ids = jdbcTemplate.queryForList(
-                "SELECT review_id FROM reviews WHERE film_id = ?",
-                Long.class, filmId
-        );
-        // удалим все оценки к каждому
-        ids.forEach(rid -> jdbcTemplate.update(
-                "DELETE FROM reviews_ratings_films_by_users WHERE review_id = ?",
-                rid
-        ));
+        String query1 = "DELETE FROM reviews_ratings_films_by_users " +
+                "WHERE review_id IN (SELECT review_id FROM reviews WHERE film_id = ?)";
+        jdbcTemplate.update(query1, filmId);
+        String query2 = "DELETE FROM reviews WHERE film_id = ?";
+        jdbcTemplate.update(query2, filmId);
     }
 
     @Override

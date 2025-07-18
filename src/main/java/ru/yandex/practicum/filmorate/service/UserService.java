@@ -73,7 +73,7 @@ public class UserService {
         log.info("Запрос на ленту событий пользователя {}", userId);
         gettingAUserById(userId);
         Collection<Event> userEvents = eventService.getUserEvents(userId);
-        log.info("Запрос на ленту событий пользователя {} вернул список длиной {}", userId, userEvents.size());
+        log.debug("Запрос на ленту событий пользователя {} вернул список длиной {}", userId, userEvents.size());
         return userEvents;
     }
 
