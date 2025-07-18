@@ -6,23 +6,23 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.mappers.DirectorRowMapper;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,6 +32,7 @@ public class DirectorDbStorage implements DirectorStorage {
 
     private final JdbcTemplate jdbcTemplate;
     private final DirectorRowMapper directorRowMapper;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
     public List<Director> getAllDirectors() {
@@ -159,6 +160,35 @@ public class DirectorDbStorage implements DirectorStorage {
             log.error("Не удалось получить список режиссеров из таблицы directors: {}", e.getMessage());
             throw new IllegalStateException("Не удалось получить список режиссеров из таблицы directors "
                     + e.getMessage());
+        }
+    }
+
+    @Override
+    public void getFilmsWithDirectors(List<Film> films) {
+        log.info("Начинаем заполнять режиссеров для возвращаемых объектов film - {}", films);
+        Map<Long, Film> filmIds = films.stream()
+                .collect(Collectors.toMap(Film::getId, Function.identity()));
+        String sql = """
+                SELECT fd.film_id, d.id, d.name
+                FROM film_director AS fd
+                LEFT JOIN directors AS d ON fd.director_id = d.id
+                WHERE fd.film_id IN (:film_ids)
+                """;
+        try {
+            MapSqlParameterSource params = new MapSqlParameterSource("film_ids", filmIds.keySet());
+            namedParameterJdbcTemplate.query(sql, params, rs -> {
+                Film film = filmIds.get(rs.getLong("film_id"));
+                Long directorId = rs.getLong("id");
+                if (!rs.wasNull()) {
+                    film.getDirectors().add(new Director(directorId, rs.getString("name")));
+                }
+            });
+            log.debug("Список фильмов с установленными режиссерами: {}", films);
+        } catch (DataAccessException e) {
+            log.error("Не удалось установить значения режиссеров для списка фильмов: {}. причина: {}",
+                    films, e.getMessage());
+            throw new IllegalStateException("Не удалось установить значения режиссеров для списка фильмов " +
+                    e.getMessage());
         }
     }
 }

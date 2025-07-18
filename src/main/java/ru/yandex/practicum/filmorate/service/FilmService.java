@@ -104,7 +104,7 @@ public class FilmService {
     public List<Film> getPopularFilms(Integer count, Integer genreId, Integer year) {
         log.info("Получен запрос на получения - {} популярных фильмов", count);
         List<Film> films = filmStorage.getPopularFilms(count, genreId, year);
-        films.forEach(this::addingFields);
+        setFieldFilms(films);
         log.debug("Список популярных фильмов - {}", films);
         return films;
     }
@@ -113,7 +113,7 @@ public class FilmService {
         log.info("Получен запрос на получение списка рекомендаций для пользователя с id - {}", userId);
         userService.gettingAUserById(userId);
         var films = filmStorage.getRecommendedMovies(userId);
-        films.forEach(this::addingFields);
+        setFieldFilms((List<Film>) films);
         log.debug("Получен список из {} рекомендаций для пользователя {}", films.size(), userId);
         return films;
     }
@@ -124,7 +124,7 @@ public class FilmService {
         userService.gettingAUserById(userId);
         userService.gettingAUserById(friendId);
         Collection<Film> commonFilms = filmStorage.listOfCommonFilms(userId, friendId);
-        commonFilms.forEach(this::addingFields);
+        setFieldFilms((List<Film>) commonFilms);
         log.debug("Возвращён список фильмов длиной {}", commonFilms.size());
         return commonFilms;
     }
@@ -133,7 +133,7 @@ public class FilmService {
         log.info("Поступил GET-запрос на получение списка фильмов sortBy={}, directorId={}", sortBy, id);
         directorService.getDirectorByID(id);
         var films = filmStorage.getFilmsByDirectorId(id, sortBy);
-        films.forEach(this::addingFields);
+        setFieldFilms((List<Film>) films);
         return films;
     }
 
@@ -142,7 +142,7 @@ public class FilmService {
         log.info("Получен запрос на поиск фильма по подстроке - {} в названии фильма или в имени режиссера - {}",
                 query, by);
         Collection<Film> films = filmStorage.getFilmsByQuery(query, by);
-        films.forEach(this::addingFields);
+        setFieldFilms((List<Film>) films);
         log.debug("В соответствии подстроки - {}, полученный список фильмов: {}", query, films);
         return films;
     }
@@ -161,4 +161,9 @@ public class FilmService {
         filmStorage.deleteFilm(filmId);
     }
 
+    public void setFieldFilms(List<Film> films) {
+        genreService.getFilmsWithGenres(films);
+        ratingService.getFilmsWithRatings(films);
+        directorService.getFilmsWithDirectors(films);
+    }
 }

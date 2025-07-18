@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.DirectorStorage;
 
 import java.util.List;
@@ -47,5 +48,9 @@ public class DirectorService {
 
     public List<Director> getDirectorsOfFilm(Long filmId) {
         return directorStorage.getDirectorsOfFilm(filmId);
+    }
+
+    public void getFilmsWithDirectors(List<Film> films) {
+        directorStorage.getFilmsWithDirectors(films);
     }
 }

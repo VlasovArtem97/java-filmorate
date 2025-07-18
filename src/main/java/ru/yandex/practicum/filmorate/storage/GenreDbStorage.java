@@ -9,13 +9,16 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.interfacedatabase.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.mappers.GenreRowMapper;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Repository
@@ -100,6 +103,35 @@ public class GenreDbStorage implements GenreStorage {
         } catch (DataAccessException e) {
             log.error("Не удалось получить список жанров из таблицы genres: {}", e.getMessage());
             throw new IllegalStateException("Не удалось получить список жанров из таблицы genres " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void getFilmsWithGenres(List<Film> films) {
+        log.info("Начинаем заполнять жанры для возвращаемых объектов film - {}", films);
+        Map<Long, Film> filmIds = films.stream()
+                .collect(Collectors.toMap(Film::getId, Function.identity()));
+        String sql = """
+                SELECT gf.film_id, g.genre_id, g.name
+                FROM genres_films AS gf
+                LEFT JOIN genres AS g ON gf.genre_id = g.genre_id
+                WHERE gf.film_id IN (:film_ids)
+                """;
+        try {
+            MapSqlParameterSource params = new MapSqlParameterSource("film_ids", filmIds.keySet());
+            namedParameterJdbcTemplate.query(sql, params, rs -> {
+                Film film = filmIds.get(rs.getLong("film_id"));
+                Long genreId = rs.getLong("genre_id");
+                if (!rs.wasNull()) {
+                    film.getGenres().add(new Genre(genreId, rs.getString("name")));
+                }
+            });
+            log.debug("Список фильмов с установленными жанрами: {}", films);
+        } catch (DataAccessException e) {
+            log.error("Не удалось установить значения жанров для списка фильмов: {}. причина: {}",
+                    films, e.getMessage());
+            throw new IllegalStateException("Не удалось установить значения жанров для списка фильмов " +
+                    e.getMessage());
         }
     }
 }
