@@ -8,8 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DataCleanupService {
 
-    //    private final FilmStorage filmStorage;
-//    private final UserStorage userStorage;
     private final ReviewService reviewService;
     private final GenreService genreService;
     private final DirectorService directorService;

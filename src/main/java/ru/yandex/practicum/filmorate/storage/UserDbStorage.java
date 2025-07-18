@@ -98,7 +98,6 @@ public class UserDbStorage implements UserStorage {
         int count = jdbcTemplate.update(query, userId, userFriendId);
         if (count == 0) {
             log.error("Пользователя с Id - {} нет в списке друзей пользователя - {}", userFriendId, userId);
-            return;
         } else {
             log.debug("Пользователь c id - {} удалил из списка друзей пользователя c id - {}", userId, userFriendId);
         }
